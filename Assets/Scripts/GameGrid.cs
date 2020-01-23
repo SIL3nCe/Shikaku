@@ -8,26 +8,29 @@ public class GameGrid : MonoBehaviour
     public int width;
     public int height;
 
-    [Tooltip("Object to instantiate")]
+    [Tooltip("Cell object to instantiate")]
     public GameObject cellPrefab;
 
     private GameObject[,] aGrid;
 
     void Start()
     {
-        aGrid = new GameObject[width,height];
+        aGrid = new GameObject[height, width];
 
         int cellSize = 10;
-        for (int iHeight = 0; iHeight <= height; iHeight++)
+        int x = 0, y = 0;
+        for (int iHeight = 0; iHeight < height; ++iHeight)
         {
-            for (int iWidth = 0; iWidth <= width; ++iWidth)
+            for (int iWidth = 0; iWidth < width; ++iWidth)
             {
-                aGrid[iHeight, iWidth] = Instantiate(cellPrefab, new Vector3(iWidth, iHeight, 0), Quaternion.identity);
-                aGrid[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iHeight, cellSize);
+                aGrid[iHeight, iWidth] = Instantiate(cellPrefab, new Vector3(x, y, 0), Quaternion.identity);
+                aGrid[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, cellSize);
+                x += cellSize;
             }
+            x = 0;
+            y -= cellSize;
         }
     }
-
 
     // Update is called once per frame
     //void Update()

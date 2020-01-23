@@ -10,5 +10,6 @@ public class Cell : MonoBehaviour
     public void Initialize(int x, int y, int size)
     {
         coordinates = new Vector2Int(x, y);
+        gameObject.transform.localScale = new Vector3(size, size, 1);
     }
 }
