@@ -7,16 +7,11 @@ public class CellText : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        var parent = transform.parent;
+        Transform parent = transform.parent;
 
-        var parentRenderer = parent.GetComponent<Renderer>();
-        var renderer = GetComponent<Renderer>();
+        Renderer parentRenderer = parent.GetComponent<Renderer>();
+        Renderer renderer = GetComponent<Renderer>();
         renderer.sortingLayerID = parentRenderer.sortingLayerID;
-        renderer.sortingOrder = parentRenderer.sortingOrder;
-
-        var spriteTransform = parent.transform;
-        var text = GetComponent<TextMesh>();
-        var pos = spriteTransform.position;
-        text.text = string.Format("{0}, {1}", pos.x, pos.y);
+        renderer.sortingOrder = parentRenderer.sortingOrder + 2;
     }
 }
