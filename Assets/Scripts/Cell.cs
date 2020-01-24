@@ -16,4 +16,9 @@ public class Cell : MonoBehaviour
         if (text != null)
             text.text = string.Format("ntm");
     }
+    void OnMouseDown()
+    {
+        // TODO tell grid about clic
+        Destroy(gameObject);
+    }
 }
