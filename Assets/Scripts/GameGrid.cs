@@ -13,6 +13,9 @@ public class GameGrid : MonoBehaviour
 
     private GameObject[,] aGrid;
 
+    private bool bSelection;
+    private Vector3 vSelectionStart;
+
     void Start()
     {
         aGrid = new GameObject[height, width];
@@ -28,11 +31,39 @@ public class GameGrid : MonoBehaviour
             for (int iWidth = 0; iWidth < width; ++iWidth)
             {
                 aGrid[iHeight, iWidth] = Instantiate(cellPrefab, new Vector3(x, y, 0), Quaternion.identity);
-                aGrid[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, 1.0f);
+                aGrid[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, 1.0f, this);
                 x += cellSize;
             }
             x = fTopLeftX;
             y -= cellSize;
         }
+    }
+
+    void OnGUI()
+    {
+        if (bSelection)
+        {
+            Vector3 vCurrMousePos = Input.mousePosition;
+            vCurrMousePos.y = Camera.main.pixelHeight - vCurrMousePos.y;
+
+            // TODO Keep last known size if new covered cells give an invalid area
+
+            GUI.Box(new Rect(vSelectionStart.x, vSelectionStart.y, vCurrMousePos.x - vSelectionStart.x, vCurrMousePos.y - vSelectionStart.y), "This is a box");
+        }
+    }
+    public void StopSelection()
+    {
+        if (bSelection)
+        {
+            bSelection = false;
+            //TODO draw a rectangle around cells if area is valid
+        }
+    }
+    
+    public void BeginSelection()
+    {
+        bSelection = true;
+        vSelectionStart = Input.mousePosition;
+        vSelectionStart.y = Camera.main.pixelHeight - vSelectionStart.y;
     }
 }
