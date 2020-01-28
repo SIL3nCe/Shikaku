@@ -15,6 +15,7 @@ public class GameGrid : MonoBehaviour
 
     private bool bSelection;
     private Vector3 vSelectionStart;
+    private Vector2Int vCellStart;
 
     void Start()
     {
@@ -48,22 +49,49 @@ public class GameGrid : MonoBehaviour
 
             // TODO Keep last known size if new covered cells give an invalid area
 
-            GUI.Box(new Rect(vSelectionStart.x, vSelectionStart.y, vCurrMousePos.x - vSelectionStart.x, vCurrMousePos.y - vSelectionStart.y), "This is a box");
+            GUI.Box(new Rect(vSelectionStart.x, vSelectionStart.y, vCurrMousePos.x - vSelectionStart.x, vCurrMousePos.y - vSelectionStart.y), "vntmlrdpapds");
         }
     }
+    
+    public void BeginSelection(Vector2Int cellCoord)
+    {
+        bSelection = true;
+        vCellStart = cellCoord;
+        vSelectionStart = Input.mousePosition;
+        vSelectionStart.y = Camera.main.pixelHeight - vSelectionStart.y;
+    }
+
     public void StopSelection()
     {
         if (bSelection)
         {
             bSelection = false;
-            //TODO draw a rectangle around cells if area is valid
+
+            Vector3 vCurrMousePos = Input.mousePosition;
+            vCurrMousePos.z = Camera.main.farClipPlane; //distance of the plane from the camera
+            vCurrMousePos = Camera.main.ScreenToWorldPoint(vCurrMousePos);
+
+            Vector2Int vCellEnd = new Vector2Int();
+            for (int iHeight = 0; iHeight < height; ++iHeight)
+            {
+                for (int iWidth = 0; iWidth < width; ++iWidth)
+                {
+                    if (RectTransformUtility.RectangleContainsScreenPoint(aGrid[iHeight, iWidth].GetComponent<RectTransform>(), vCurrMousePos))
+                    {
+                        vCellEnd.x = iHeight;
+                        vCellEnd.y = iWidth;
+                        break;
+                    }
+                }
+            }
+
+            Debug.Log(vCellEnd);
+
+            // TODO Check if area is valid based on cells on it
+            //aGrid[vCellStart.x, vCellStart.y];
+            //aGrid[vCellEnd.x, vCellEnd.y];
+
+            // TODO draw a rectangle around cells if area is valid
         }
-    }
-    
-    public void BeginSelection()
-    {
-        bSelection = true;
-        vSelectionStart = Input.mousePosition;
-        vSelectionStart.y = Camera.main.pixelHeight - vSelectionStart.y;
     }
 }

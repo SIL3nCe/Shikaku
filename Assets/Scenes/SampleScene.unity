@@ -299,7 +299,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   width: 8
-  height: 5
+  height: 6
   cellPrefab: {fileID: 685935787712042749, guid: dc6bea8db67e43647bedb9b3790cf5ee,
     type: 3}
 --- !u!4 &1035952188

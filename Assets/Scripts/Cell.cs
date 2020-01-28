@@ -19,11 +19,10 @@ public class Cell : MonoBehaviour
 
         gridObject = grid;
     }
+
     void OnMouseDown()
     {
-        gridObject.BeginSelection();
-        // TODO tell grid about clic
-        //Destroy(gameObject);
+        gridObject.BeginSelection(vCoordinates);
     }
 
     void OnMouseUp()
