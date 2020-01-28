@@ -4,18 +4,23 @@ using UnityEngine;
 
 public class Cell : MonoBehaviour
 {
-    //TODO Make an enum for empty/already in a rectangle/origin case
     private Vector2Int vCoordinates;
     private GameGrid gridObject;
 
+    private bool bIsInArea;
+    private int areaSize; // Define if is an "area origin" cell
+
     public void Initialize(int x, int y, float size, GameGrid grid)
     {
+        bIsInArea = false;
+        areaSize = Random.Range(-7, 7);
+
         vCoordinates = new Vector2Int(x, y);
         gameObject.transform.localScale = new Vector3(size, size, 1);
 
         var text = GetComponentInChildren<TextMesh>();
         if (text != null)
-            text.text = string.Format("ntm");
+            text.text = areaSize.ToString();
 
         gridObject = grid;
     }
@@ -28,5 +33,25 @@ public class Cell : MonoBehaviour
     void OnMouseUp()
     {
         gridObject.StopSelection();
+    }
+
+    public void SetIsInArea()
+    {
+        bIsInArea = true;
+    }
+
+    public bool IsInArea()
+    {
+        return bIsInArea;
+    }
+
+    public int GetAreaOriginValue()
+    {
+        return areaSize;
+    }
+
+    public bool IsAreaOrigin()
+    {
+        return areaSize > 0;
     }
 }
