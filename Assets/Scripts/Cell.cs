@@ -35,13 +35,14 @@ public class Cell : MonoBehaviour
         gridObject.StopSelection();
     }
 
-    public void SetIsInArea()
+    public void SetIsInArea(bool bValue)
     {
-        bIsInArea = true;
+        bIsInArea = bValue;
     }
 
     public bool IsInArea()
     {
+        Debug.Log("IsInArea " + bIsInArea);
         return bIsInArea;
     }
 

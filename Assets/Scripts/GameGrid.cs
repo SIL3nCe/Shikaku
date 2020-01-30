@@ -88,14 +88,15 @@ public class GameGrid : MonoBehaviour
 
             if (IsAreaValid(vCellStart, vCellEnd))
             {
+                Color areaColor = UnityEngine.Random.ColorHSV();
                 // TODO draw a rectangle around cells vs change cell color ?
                 for (int i = Mathf.Min(vCellStart.x, vCellEnd.x); i <= Mathf.Max(vCellStart.x, vCellEnd.x); ++i)
                 {
                     for (int j = Mathf.Min(vCellStart.y, vCellEnd.y); j <= Mathf.Max(vCellStart.y, vCellEnd.y); ++j)
                     {
                         Cell cell = aGrid[i, j].GetComponent<Cell>();
-                        cell.GetComponent<SpriteRenderer>().color = Color.red;
-                        cell.SetIsInArea();
+                        cell.GetComponent<SpriteRenderer>().color = areaColor;
+                        cell.SetIsInArea(true);
                     }
                 }
             }
@@ -119,6 +120,11 @@ public class GameGrid : MonoBehaviour
             for (int j = Mathf.Min(vStart.y, vEnd.y); j <= Mathf.Max(vStart.y, vEnd.y); ++j)
             {
                 Cell cell = aGrid[i, j].GetComponent<Cell>();
+
+                // A cell in area is already in another area
+                if (cell.IsInArea())
+                    return false;
+
                 if (cell.IsAreaOrigin())
                 {
                     // More than one origin cell in area
@@ -127,10 +133,6 @@ public class GameGrid : MonoBehaviour
 
                     // Too much/not enough cells in area based on origin cell value
                     if (cell.GetAreaOriginValue() != nCells)
-                        return false;
-
-                    // A cell in area is already in another area
-                    if (cell.IsInArea())
                         return false;
                 }
             }
