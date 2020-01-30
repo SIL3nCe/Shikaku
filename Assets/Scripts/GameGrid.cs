@@ -33,10 +33,10 @@ public class GameGrid : MonoBehaviour
             {
                 aGrid[iHeight, iWidth] = Instantiate(cellPrefab, new Vector3(x, y, 0), Quaternion.identity);
                 aGrid[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, 1.0f, this);
-                x += cellSize;
+                x += cellSize + 0.08f;
             }
             x = fTopLeftX;
-            y -= cellSize;
+            y -= cellSize + 0.08f;
         }
     }
 

@@ -42,7 +42,6 @@ public class Cell : MonoBehaviour
 
     public bool IsInArea()
     {
-        Debug.Log("IsInArea " + bIsInArea);
         return bIsInArea;
     }
 
