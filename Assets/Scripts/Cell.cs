@@ -7,27 +7,27 @@ public class Cell : MonoBehaviour
     private Vector2Int vCoordinates;
     private GameGrid gridObject;
 
-    private bool bIsInArea;
+    private int areaId;
     private int areaSize; // Define if is an "area origin" cell
 
     public void Initialize(int x, int y, float size, GameGrid grid)
     {
-        bIsInArea = false;
-        areaSize = Random.Range(-7, 7);
+        areaId = -1;
+        areaSize = 0;
 
         vCoordinates = new Vector2Int(x, y);
         gameObject.transform.localScale = new Vector3(size, size, 1);
 
-        var text = GetComponentInChildren<TextMesh>();
+        TextMesh text = GetComponentInChildren<TextMesh>();
         if (text != null)
-            text.text = areaSize.ToString();
+            text.text = "";
 
         gridObject = grid;
     }
 
     void OnMouseDown()
     {
-        gridObject.BeginSelection(vCoordinates);
+        gridObject.BeginSelection(vCoordinates, areaId);
     }
 
     void OnMouseUp()
@@ -35,14 +35,19 @@ public class Cell : MonoBehaviour
         gridObject.StopSelection();
     }
 
-    public void SetIsInArea(bool bValue)
+    public void SetAreaId(int _areaId)
     {
-        bIsInArea = bValue;
+        areaId = _areaId;
     }
 
     public bool IsInArea()
     {
-        return bIsInArea;
+        return areaId >= 0;
+    }
+
+    public bool IsInGivenArea(int _areaId)
+    {
+        return areaId == _areaId;
     }
 
     public int GetAreaOriginValue()
@@ -53,5 +58,13 @@ public class Cell : MonoBehaviour
     public bool IsAreaOrigin()
     {
         return areaSize > 0;
+    }
+
+    public void SetAreaSize(int value)
+    {
+        areaSize = value; 
+        TextMesh text = GetComponentInChildren<TextMesh>();
+        if (text != null)
+            text.text = areaSize.ToString();
     }
 }

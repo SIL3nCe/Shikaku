@@ -17,13 +17,24 @@ public class GameGrid : MonoBehaviour
     private Vector3 vSelectionStart;
     private Vector2Int vCellStart;
 
+    private int areaCounter;
+
     void Start()
     {
+        Generate();
+    }
+
+    public void Generate()
+    {
+        areaCounter = 0;
+
+        height = 5; width = 5; //Hardcoded 5*5 grid for tests
+
         aGrid = new GameObject[height, width];
 
         // Set grid center in 0,0
         float fTopLeftX = 0.5f - (width * 0.5f);
-        float fTopLeftY = -0.5f + height * 0.5f;
+        float fTopLeftY = -0.5f + (height * 0.5f);
 
         int cellSize = 1;
         float x = fTopLeftX, y = fTopLeftY;
@@ -38,6 +49,18 @@ public class GameGrid : MonoBehaviour
             x = fTopLeftX;
             y -= cellSize + 0.08f;
         }
+
+        //TODO grid generator
+        //Hardcoded 5*5 grid for tests
+        aGrid[0, 0].GetComponent<Cell>().SetAreaSize(2);
+        aGrid[0, 2].GetComponent<Cell>().SetAreaSize(4);
+        aGrid[0, 3].GetComponent<Cell>().SetAreaSize(2);
+        aGrid[1, 1].GetComponent<Cell>().SetAreaSize(4);
+        aGrid[1, 3].GetComponent<Cell>().SetAreaSize(2);
+        aGrid[2, 0].GetComponent<Cell>().SetAreaSize(2);
+        aGrid[2, 4].GetComponent<Cell>().SetAreaSize(3);
+        aGrid[4, 2].GetComponent<Cell>().SetAreaSize(3);
+        aGrid[4, 3].GetComponent<Cell>().SetAreaSize(3);
     }
 
     void OnGUI()
@@ -53,12 +76,32 @@ public class GameGrid : MonoBehaviour
         }
     }
     
-    public void BeginSelection(Vector2Int cellCoord)
+    public void BeginSelection(Vector2Int cellCoord, int areaId)
     {
-        bSelection = true;
-        vCellStart = cellCoord;
-        vSelectionStart = Input.mousePosition;
-        vSelectionStart.y = Camera.main.pixelHeight - vSelectionStart.y;
+        if (areaId >= 0)
+        {
+            // Already in area, delete this area
+            for (int iHeight = 0; iHeight < height; ++iHeight)
+            {
+                for (int iWidth = 0; iWidth < width; ++iWidth)
+                {
+                    Cell cell = aGrid[iHeight, iWidth].GetComponent<Cell>();
+                    if (cell.IsInGivenArea(areaId))
+                    {
+                        cell.SetAreaId(-1);
+                        cell.GetComponent<SpriteRenderer>().color = Color.white;
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Begin selection
+            bSelection = true;
+            vCellStart = cellCoord;
+            vSelectionStart = Input.mousePosition;
+            vSelectionStart.y = Camera.main.pixelHeight - vSelectionStart.y;
+        }
     }
 
     public void StopSelection()
@@ -96,11 +139,33 @@ public class GameGrid : MonoBehaviour
                     {
                         Cell cell = aGrid[i, j].GetComponent<Cell>();
                         cell.GetComponent<SpriteRenderer>().color = areaColor;
-                        cell.SetIsInArea(true);
+                        cell.SetAreaId(areaCounter);
                     }
                 }
+
+                areaCounter++;
+
+                CheckEndCondition();
             }
         }
+    }
+
+    private void CheckEndCondition()
+    {
+        //TODO add not-int-area counter instead
+        for (int iHeight = 0; iHeight < height; ++iHeight)
+        {
+            for (int iWidth = 0; iWidth < width; ++iWidth)
+            {
+                Cell cell = aGrid[iHeight, iWidth].GetComponent<Cell>();
+                if (!cell.IsInArea())
+                    return;
+            }
+        }
+
+        // Grid is ended
+        // TODO - Button to generate next grid
+        Debug.Log("GRID ENDED, GGWP");
     }
 
     private bool IsAreaValid(Vector2Int vStart, Vector2Int vEnd)
