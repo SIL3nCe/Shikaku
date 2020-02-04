@@ -1,2 +1,3 @@
 # Shikaku
- Shikaku game
+
+https://en.wikipedia.org/wiki/Shikaku
