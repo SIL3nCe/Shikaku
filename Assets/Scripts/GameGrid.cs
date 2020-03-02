@@ -11,7 +11,10 @@ public class GameGrid : MonoBehaviour
     [Tooltip("Cell object to instantiate")]
     public GameObject cellPrefab;
 
+    // Height = i (y), Width = j (x)
     private GameObject[,] aGrid;
+
+    private int[,] aGridModel;
 
     private bool bSelection;
     private Vector3 vSelectionStart;
@@ -19,8 +22,11 @@ public class GameGrid : MonoBehaviour
 
     private int areaCounter;
 
+    private Resolver resolver;
+
     void Start()
     {
+        resolver = new Resolver();
         Generate();
     }
 
@@ -61,6 +67,17 @@ public class GameGrid : MonoBehaviour
         aGrid[2, 4].GetComponent<Cell>().SetAreaSize(3);
         aGrid[4, 2].GetComponent<Cell>().SetAreaSize(3);
         aGrid[4, 3].GetComponent<Cell>().SetAreaSize(3);
+
+        aGridModel = new int[height, width];
+        for (int iHeight = 0; iHeight < height; ++iHeight)
+        {
+            for (int iWidth = 0; iWidth < width; ++iWidth)
+            {
+                aGridModel[iHeight, iWidth] = aGrid[iHeight, iWidth].GetComponent<Cell>().GetAreaOriginValue();
+            }
+        }
+
+        resolver.Resolve(width, height, aGridModel);
     }
 
     void OnGUI()
