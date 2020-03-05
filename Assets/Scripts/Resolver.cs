@@ -4,12 +4,12 @@ using UnityEngine;
 
 class Resolver
 {
-    // Height = i (y), Width = j (x)
+    // Height (line) = i (x), Width (column) = j (y)
 
     class SPoint : IComparable
     {
-        public int y; // Height (i)
-        public int x; // Width (j)
+        public int x; // Height (i)
+        public int y; // Width (j)
         public int areaValue;
 
         public int CompareTo(object Other)
@@ -27,19 +27,19 @@ class Resolver
         }
     };
 
-    private List<SPoint> aSPointList;
+    private List<SPoint> m_aSPointList;
 
-    private List<int[,]> aGridList;
-    private int width;
-    private int height;
+    private List<int[,]> m_aGridList;
+    private int m_iWidth;
+    private int m_iHeight;
 
     void Display(int[,] aBaseGrid)
     {
         string strGrid = "Display Grid\n";
 
-        for (int iHeight = 0; iHeight < height; ++iHeight)
+        for (int iHeight = 0; iHeight < m_iHeight; ++iHeight)
         {
-            for (int iWidth = 0; iWidth < width; ++iWidth)
+            for (int iWidth = 0; iWidth < m_iWidth; ++iWidth)
             {
                 strGrid += aBaseGrid[iHeight, iWidth];
                 strGrid += " ";
@@ -49,17 +49,81 @@ class Resolver
         Debug.Log(strGrid);
     }
 
-    //TODO AddValidArea
-
-    void AddAllValidAreas(int[,] aGrid, SPoint sPoint, int width, int height)
+    bool IsValidArea(int [,] aGrid, SPoint sPoint, int x, int y, int width, int height)
     {
-        Debug.Log("AddAllValidAreas: " + width + " " + height);
+        // Height (line) = i (x), Width (column) = j (y)
 
-        //AddValidArea(currentGrid, sPoint, width, height);
+        if (x < 0 
+            || x + height > m_iHeight 
+            || y < 0 
+            || y + width > m_iWidth)
+            return false;
 
-        if (width != height)
+        // loop on area, check if empty
+        for (int i = x; i < x + height; ++i)
         {
-            //AddValidArea(currentGrid, sPoint, height, width);
+            for (int j = y; j < y + width; ++j)
+            {
+                if (i == sPoint.x && j == sPoint.y)
+                    continue;
+
+                if (aGrid[i, j] != 0)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    void AddValidArea(int[,] aGrid, SPoint sPoint, int width, int height)
+    {
+        // Height (line) = i (x), Width (column) = j (y)
+
+        //Display(aGrid);
+        Debug.Log("test with area (x,y) " + height + " " + width);
+
+        int startX = sPoint.x - height;
+        int startY = sPoint.y - width;
+
+        Debug.Log("spoint x : y " + sPoint.x + " " + sPoint.y);
+        Debug.Log("start x : y " + startX + " " + startY);
+
+        for (int currX = startX; currX <= startX + height; ++currX)
+        {
+            for (int currY = startY; currY <= startY + width; ++currY)
+            {
+                Debug.Log("Try top left: " + currX + " " + currY);
+                if (IsValidArea(aGrid, sPoint, currX, currY, width, height))
+                {
+                    Debug.Log("Found valid area");
+                    // Copy grid in a new grid
+                    int[,] aValidGrid = aGrid;
+
+                    // Update new grid cells for valid area
+                    for (int k = currX; k < currX + height; ++k)
+                    {
+                        for (int l = currY; l < currY + width; ++l)
+                        {
+                            //Debug.Log(k + " " + l + " " + (height - 1) + " " + (width - 1));
+                            aValidGrid[k, l] = sPoint.areaValue;
+                        }
+                    }
+                    Display(aValidGrid);
+                    
+                    // Push in global grid list
+                    m_aGridList.Add(aValidGrid);
+                }
+            }
+        }
+    }
+
+    void AddAllValidAreas(int[,] aGrid, SPoint sPoint, int sideLength1, int sideLength2)
+    {
+         AddValidArea(aGrid, sPoint, sideLength1, sideLength2);
+
+        if (sideLength1 != sideLength2)
+        {
+            AddValidArea(aGrid, sPoint, sideLength2, sideLength1);
         }
     }
 
@@ -88,35 +152,35 @@ class Resolver
 
     public void Resolve(int _width, int _height, int[,] aBaseGrid)
     {
-        aGridList = new List<int[,]>();
-        aSPointList = new List<SPoint>();
+        m_aGridList = new List<int[,]>();
+        m_aSPointList = new List<SPoint>();
 
-        width = _width;
-        height = _height;
+        m_iWidth = _width;
+        m_iHeight = _height;
 
-        aGridList.Add(aBaseGrid);
+        m_aGridList.Add(aBaseGrid);
 
         // Init SPoint list
         {
-            for (int iHeight = 0; iHeight < height; ++iHeight)
+            for (int i = 0; i < m_iHeight; ++i)
             {
-                for (int iWidth = 0; iWidth < width; ++iWidth)
+                for (int j = 0; j < m_iWidth; ++j)
                 {
-                    if (0 != aBaseGrid[iHeight, iWidth])
+                    if (0 != aBaseGrid[i, j])
                     {
                         SPoint sPoint = new SPoint
                         {
-                            y = iWidth,
-                            x = iHeight,
-                            areaValue = aBaseGrid[iHeight, iWidth]
+                            x = i,
+                            y = j,
+                            areaValue = aBaseGrid[i, j]
                         };
 
-                        aSPointList.Add(sPoint);
+                        m_aSPointList.Add(sPoint);
                     }
                 }
             }
 
-            aSPointList.Sort();
+            m_aSPointList.Sort();
 
             // Debug Display sorted list of SPoints
             //for (int i = 0; i < aSPointList.Count; ++i)
@@ -126,20 +190,23 @@ class Resolver
         }
 
         // Run
-        for (int iSPoint = 0; iSPoint < aSPointList.Count; ++iSPoint)
+        for (int iSPoint = 0; iSPoint < m_aSPointList.Count; ++iSPoint)
         {
-            Debug.Log("Start with " + aSPointList[iSPoint]);
+            Debug.Log("Start with " + m_aSPointList[iSPoint]);
 
-            int nSolutions = aGridList.Count;
+            int nSolutions = m_aGridList.Count;
             for (int iGrid = 0; iGrid < nSolutions; ++iGrid)
             {
                 // Generate grid cases with current SPoint
-                GenerateGridsFromSPoint(aGridList[iGrid], aSPointList[iSPoint]);
+                GenerateGridsFromSPoint(m_aGridList[iGrid], m_aSPointList[iSPoint]);
             }
 
             // Remove old grids using nSolutions and new list sizes
         }
 
-        Display(aBaseGrid);
+        for (int i = 0; i < m_aGridList.Count; ++i)
+        {
+            Display(m_aGridList[0]);
+        }
     }
 }
