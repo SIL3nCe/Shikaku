@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class GameGrid : MonoBehaviour
 {
@@ -68,16 +69,12 @@ public class GameGrid : MonoBehaviour
         aGrid[4, 2].GetComponent<Cell>().SetAreaSize(3);
         aGrid[4, 3].GetComponent<Cell>().SetAreaSize(3);
 
-        aGridModel = new int[height, width];
-        for (int iHeight = 0; iHeight < height; ++iHeight)
-        {
-            for (int iWidth = 0; iWidth < width; ++iWidth)
-            {
-                aGridModel[iHeight, iWidth] = aGrid[iHeight, iWidth].GetComponent<Cell>().GetAreaOriginValue();
-            }
-        }
+		GridGenerator generator = new GridGenerator();
+		int[,] aTestGrid = new int[0, 0];
+		bool bGenerated = generator.Generate(ref aTestGrid, GridGenerator.EDifficulty.easy);
+		Assert.IsTrue(bGenerated);
 
-        resolver.Resolve(width, height, aGridModel);
+        resolver.Resolve(aTestGrid.GetLength(1), aTestGrid.GetLength(0), aTestGrid);
     }
 
     void OnGUI()
