@@ -473,7 +473,7 @@ public class GridGenerator
 						{
 							//
 							// Try merging from another single block
-							if		(!TryMergingEmptyCellWithNeighbour(iColumnIndex, iRowIndex, -1, +0))		// Up
+							if (!TryMergingEmptyCellWithNeighbour(iColumnIndex, iRowIndex, -1, +0))				// Up
 							{
 								if (!TryMergingEmptyCellWithNeighbour(iColumnIndex, iRowIndex, +0, +1))			// Right
 								{
@@ -482,8 +482,9 @@ public class GridGenerator
 										if (!TryMergingEmptyCellWithNeighbour(iColumnIndex, iRowIndex, +0, -1)) // Left
 										{
 											//
-											// Cannot merge
-											Debug.Log("Cannot merge unresolved cell ("+iColumnIndex+","+iRowIndex+")");
+											// If merging is not possible, split a neighbour to create a favorable
+											// merging for next iteration
+											SplitNeighbour(iColumnIndex, iRowIndex);
 										}
 										else
 										{
@@ -558,6 +559,12 @@ public class GridGenerator
 			}
 		}
 		return false;
+	}
+
+	private void SplitNeighbour(int iColumnIndex, int iRowIndex)
+	{
+		// 
+		// TODO
 	}
 
 	private void UpdateGridsWithBlock(ShikakuBlock block)
