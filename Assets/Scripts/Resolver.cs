@@ -70,7 +70,7 @@ class Resolver
                         for (int l = currY; l < currY + width; ++l)
                         {
                             //Debug.Log(k + " " + l + " " + (height - 1) + " " + (width - 1));
-                            newGrid.m_aCells[k, l] = sPoint.areaValue;
+                            newGrid.m_aCells[k, l] = sPoint.value;
                         }
                     }
 
@@ -111,7 +111,7 @@ class Resolver
 
         List<int> aDivisors = new List<int>{ 2, 3, 5, 7 };
         int currentMultiple = 1;
-        int iLastMultiple = sPoint.areaValue;
+        int iLastMultiple = sPoint.value;
         while (true)
         { 
             int iDivisorIndex = 0;
@@ -139,14 +139,14 @@ class Resolver
         }
     }
 
-    public void Resolve(int _width, int _height, GridModel aBaseGrid)
+    public void Resolve(GridModel aBaseGrid)
     {
         m_aGridList = new List<GridModel>();
         m_aSPointList = aBaseGrid.m_aAreaList;
         m_aSPointList.Sort();
 
-        m_iWidth = _width;
-        m_iHeight = _height;
+        m_iWidth = aBaseGrid.m_iWidth;
+        m_iHeight = aBaseGrid.m_iHeight;
 
         m_aGridList.Add(aBaseGrid);
 

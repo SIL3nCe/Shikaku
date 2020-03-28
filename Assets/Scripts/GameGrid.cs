@@ -33,11 +33,16 @@ public class GameGrid : MonoBehaviour
 
     public void Generate()
     {
+
+        GridGenerator generator = new GridGenerator();
+        var retVal = generator.Generate(GridGenerator.EDifficulty.easy);
+        Assert.IsTrue(retVal.Item1);
+
+        aGridModel = retVal.Item2;
+
         areaCounter = 0;
-
-        height = 5; width = 5; //Hardcoded for tests
-
-        aGridModel = new GridModel(width, height);
+        height = aGridModel.m_iHeight;
+        width = aGridModel.m_iWidth;
 
         aGridView = new GameObject[height, width];
 
@@ -59,6 +64,14 @@ public class GameGrid : MonoBehaviour
             y -= cellSize + 0.08f;
         }
 
+        int nArea = aGridModel.m_aAreaList.Count;
+        for (int i = 0; i < nArea; ++i)
+        {
+            Area area = aGridModel.m_aAreaList[i];
+            aGridView[area.x, area.y].GetComponent<Cell>().SetAreaSize(area.value);
+        }
+
+        // 10*10
         //aGridView[0, 8].GetComponent<Cell>().SetAreaSize(9);
         //aGridView[1, 6].GetComponent<Cell>().SetAreaSize(9);
         //aGridView[3, 1].GetComponent<Cell>().SetAreaSize(20);
@@ -83,47 +96,35 @@ public class GameGrid : MonoBehaviour
         //aGridView[4, 2].GetComponent<Cell>().SetAreaSize(3);
         //aGridView[4, 3].GetComponent<Cell>().SetAreaSize(3);
 
-        // Multiple solutions
-        aGridView[0, 0].GetComponent<Cell>().SetAreaSize(3);
-        aGridView[0, 3].GetComponent<Cell>().SetAreaSize(4);
-        aGridView[1, 2].GetComponent<Cell>().SetAreaSize(2);
-        aGridView[1, 3].GetComponent<Cell>().SetAreaSize(2);
-        aGridView[2, 1].GetComponent<Cell>().SetAreaSize(3);
-        aGridView[2, 3].GetComponent<Cell>().SetAreaSize(3);
-        aGridView[3, 0].GetComponent<Cell>().SetAreaSize(2);
-        aGridView[3, 2].GetComponent<Cell>().SetAreaSize(2);
-        aGridView[4, 4].GetComponent<Cell>().SetAreaSize(2);
-        aGridView[4, 3].GetComponent<Cell>().SetAreaSize(2);
+        // Multiple solutions 5*5
+        //aGridView[0, 0].GetComponent<Cell>().SetAreaSize(3);
+        //aGridView[0, 3].GetComponent<Cell>().SetAreaSize(4);
+        //aGridView[1, 2].GetComponent<Cell>().SetAreaSize(2);
+        //aGridView[1, 3].GetComponent<Cell>().SetAreaSize(2);
+        //aGridView[2, 1].GetComponent<Cell>().SetAreaSize(3);
+        //aGridView[2, 3].GetComponent<Cell>().SetAreaSize(3);
+        //aGridView[3, 0].GetComponent<Cell>().SetAreaSize(2);
+        //aGridView[3, 2].GetComponent<Cell>().SetAreaSize(2);
+        //aGridView[4, 4].GetComponent<Cell>().SetAreaSize(2);
+        //aGridView[4, 3].GetComponent<Cell>().SetAreaSize(2);
 
-        //GridGenerator generator = new GridGenerator();
-        //int[,] aTestGrid = new int[0, 0];
-        //bool bGenerated = generator.Generate(ref aTestGrid, GridGenerator.EDifficulty.easy);
-        //Assert.IsTrue(bGenerated);
+        //for (int iHeight = 0; iHeight < height; ++iHeight)
+        //{
+        //    for (int iWidth = 0; iWidth < width; ++iWidth)
+        //    {
+        //        int val = aGridView[iHeight, iWidth].GetComponent<Cell>().GetAreaOriginValue();
+        //
+        //        aGridModel.m_aCells[iHeight, iWidth] = val;
+        //
+        //        if (val != 0)
+        //        {
+        //            Area area = new Area(iHeight, iWidth, val);
+        //            aGridModel.m_aAreaList.Add(area);
+        //        }
+        //    }
+        //}
 
-        //resolver.Resolve(aTestGrid.GetLength(1), aTestGrid.GetLength(0), aTestGrid);
-
-        for (int iHeight = 0; iHeight < height; ++iHeight)
-        {
-            for (int iWidth = 0; iWidth < width; ++iWidth)
-            {
-                int val = aGridView[iHeight, iWidth].GetComponent<Cell>().GetAreaOriginValue();
-
-                aGridModel.m_aCells[iHeight, iWidth] = val;
-
-                if (val != 0)
-                {
-                    Area area = new Area
-                    {
-                        x = iHeight,
-                        y = iWidth,
-                        areaValue = val,
-                    };
-                    aGridModel.m_aAreaList.Add(area);
-                }
-            }
-        }
-
-        resolver.Resolve(width, height, aGridModel);
+        resolver.Resolve(aGridModel);
     }
 
     void OnGUI()

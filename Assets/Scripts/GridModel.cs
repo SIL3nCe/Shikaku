@@ -7,14 +7,17 @@ class Area : IComparable
     // Origin
     public int x; // Height (i)
     public int y; // Width (j)
-    public int areaValue;
+    public int value;
 
     // Values found by player or solver
     public int startX, startY;
     public int width, height;
 
-    public Area()
+    public Area(int _x, int _y, int _value)
     {
+        x = _x;
+        y = _y;
+        value = _value;
         startX = startY = width = height = -1;
     }
 
@@ -22,7 +25,7 @@ class Area : IComparable
     public int CompareTo(object Other)
     {
         Area otherPoint = Other as Area;
-        if (this.areaValue > otherPoint.areaValue)
+        if (this.value > otherPoint.value)
             return -1;
 
         return 1;
@@ -30,7 +33,7 @@ class Area : IComparable
 
     public bool IsSameArea(Area Other)
     {
-        if (this.areaValue == Other.areaValue
+        if (this.value == Other.value
             && this.x == Other.x
             && this.y == Other.y)
             return true;
@@ -51,7 +54,7 @@ class Area : IComparable
 
     public override string ToString()
     {
-        return "SPoint: (" + y + "," + x + ") : " + areaValue;
+        return "SPoint: (" + y + "," + x + ") : " + value;
     }
 };
 
