@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using System;
 
-public class GridGenerator
+class GridGenerator
 {
 	public enum EDifficulty
 	{
@@ -73,7 +73,7 @@ public class GridGenerator
 
 	private int[] m_aiCategoryRange = new int[] { 20, 60 };
 
-	public bool Generate(ref int[,] aGridOut, EDifficulty eDifficulty)
+	public (bool, GridModel) Generate(EDifficulty eDifficulty)
 	{
 		int iWidth, iHeight;
 		switch (eDifficulty)
@@ -83,6 +83,9 @@ public class GridGenerator
 			case EDifficulty.hard: { iWidth = iHeight = 20; } break;
 			default: { iWidth = iHeight = 0; Assert.IsTrue(false); } break;
 		}
+
+		GridModel aGrid = new GridModel(iWidth, iHeight);
+
 		int iStartingPointsCount = (int)(Math.Sqrt((double)(iWidth * iHeight)) * 2.0f);
 
 		int iGenerationMaxTries = 1000;
@@ -90,24 +93,24 @@ public class GridGenerator
 		bool bGenerationSuccess = false;
 		while (!bGenerationSuccess && iGenerationTryIndex < iGenerationMaxTries)
 		{
-			bGenerationSuccess = Generate(ref aGridOut, iWidth, iHeight, iStartingPointsCount);
+			bGenerationSuccess = Generate(ref aGrid, iStartingPointsCount);
 			if(bGenerationSuccess)
 			{
-				Display(aGridOut);
+				Debug.Log(aGrid.ToString());
 			}
 
 			++iGenerationTryIndex;
 		}
 
 
-		return bGenerationSuccess;
+		return (bGenerationSuccess, aGrid);
 	}
 
-	private bool Generate(ref int[,] aGridOut, int iWidth, int iHeight, int iStartingPointsCount)
+	private bool Generate(ref GridModel aGridOut, int iStartingPointsCount)
 	{
 		//
 		// Setup
-		m_size = new int[] { iHeight, iWidth };
+		m_size = new int[] { aGridOut.m_iHeight, aGridOut .m_iWidth};
 		m_aShikakuBlocks = new List<ShikakuBlock>();
 
 		m_aRegisteredVisitedCells = new int[m_size[AXIS_Y], m_size[AXIS_X]];
@@ -173,7 +176,12 @@ public class GridGenerator
 
 		//
 		// Fill generated grid
-		aGridOut = m_aRegisteredVisitedCells;
+		foreach (ShikakuBlock block in m_aShikakuBlocks)
+		{
+			// TODO Set and store area origins based on difficulty instead of using top left
+			aGridOut.m_aAreaList.Add(new Area(block.pos[AXIS_X], block.pos[AXIS_Y], block.iAreaValue));
+			aGridOut.m_aCells[block.pos[AXIS_X], block.pos[AXIS_Y]] = block.iAreaValue;
+		}
 
 		return true;
 	}
