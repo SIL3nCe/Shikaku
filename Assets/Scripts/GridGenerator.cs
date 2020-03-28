@@ -453,9 +453,9 @@ public class GridGenerator
 					int[] iPositionDown	= GrowEmptyCellTowardsDirection(AXIS_Y, +1, iColumnIndex, iRowIndex);
 					if(iPositionUp[AXIS_Y] != iPositionDown[AXIS_Y])
 					{
-						ShikakuBlock newBlock = new ShikakuBlock(iPositionUp, new int[] { iPositionUp[AXIS_Y]-iPositionDown[AXIS_Y],iPositionUp[AXIS_X] });
+						ShikakuBlock newBlock = new ShikakuBlock(iPositionUp, new int[] { iPositionDown[AXIS_Y]-iPositionUp[AXIS_Y]+1, iPositionDown[AXIS_X] - iPositionUp[AXIS_X] + 1 });
+						Debug.Log("Forming new line vertically");
 						UpdateGridsWithBlock(newBlock);
-						Debug.Log("Formed new line vertically : " + newBlock);
 					}
 					else
 					{
@@ -463,11 +463,11 @@ public class GridGenerator
 						// Horizontally
 						int[] iPositionLeft		= GrowEmptyCellTowardsDirection(AXIS_X, -1, iColumnIndex, iRowIndex);
 						int[] iPositionRight	= GrowEmptyCellTowardsDirection(AXIS_X, +1, iColumnIndex, iRowIndex);
-						if (iPositionUp[AXIS_Y] != iPositionDown[AXIS_Y])
+						if (iPositionLeft[AXIS_X] != iPositionRight[AXIS_X])
 						{
-							ShikakuBlock newBlock = new ShikakuBlock(iPositionUp, new int[] { iPositionUp[AXIS_Y] - iPositionDown[AXIS_Y], iPositionUp[AXIS_X] });
+							ShikakuBlock newBlock = new ShikakuBlock(iPositionLeft, new int[] { iPositionRight[AXIS_Y] - iPositionLeft[AXIS_Y] + 1,  iPositionRight[AXIS_X] - iPositionLeft[AXIS_X] + 1 });
+							Debug.Log("Forming new line horizontally");
 							UpdateGridsWithBlock(newBlock);
-							Debug.Log("Formed new line horizontally : " + newBlock);
 						}
 						else
 						{
@@ -485,8 +485,24 @@ public class GridGenerator
 											// Cannot merge
 											Debug.Log("Cannot merge unresolved cell ("+iColumnIndex+","+iRowIndex+")");
 										}
+										else
+										{
+											Debug.Log("merged empty with left");
+										}
+									}
+									else
+									{
+										Debug.Log("merged empty with bottom");
 									}
 								}
+								else
+								{
+									Debug.Log("merged empty with right");
+								}
+							}
+							else
+							{
+								Debug.Log("merged empty with top");
 							}
 						}
 					}
@@ -523,9 +539,9 @@ public class GridGenerator
 			&&	iNextPosX < m_size[AXIS_X])
 		{
 			int iBlockIndex = m_aRegisteredVisitedCellsID[iNextPosY, iNextPosX] - 1;
-			if(iBlockIndex >= m_aShikakuBlocks.Count)
+			if(iBlockIndex >= m_aShikakuBlocks.Count || iBlockIndex < 0)
 			{
-				Debug.Log("");
+				Debug.Log("while merging, trying to access index '"+iBlockIndex+"' from aShikakuBlocks");
 			}
 			ShikakuBlock block = m_aShikakuBlocks[iBlockIndex];
 			if (	block.size[AXIS_X] == 1 && iDirectionY != 0
@@ -535,6 +551,7 @@ public class GridGenerator
 					new int[] { Math.Min(iOriginY, block.pos[AXIS_Y]), Math.Min(iOriginX, block.pos[AXIS_X]) },
 					new int[] { block.size[AXIS_Y] + Math.Abs(iDirectionY), block.size[AXIS_X] + Math.Abs(iDirectionX) });
 
+				Debug.Log("iblockindex to replace : " + iBlockIndex);
 				UpdateGridsWithMergedBlock(newBlock, iBlockIndex);
 
 				return true;
@@ -551,6 +568,9 @@ public class GridGenerator
 		}
 		m_aShikakuBlocks.Add(block);
 
+		Debug.Log("before updating (adding block : "+block+") :");
+		Display(m_aRegisteredVisitedCellsID);
+
 		int iMaxIndexHeight = block.pos[AXIS_Y] + block.size[AXIS_Y];
 		int iMaxIndexWidth = block.pos[AXIS_X] + block.size[AXIS_X];
 		for (int iColumnIndex = block.pos[AXIS_Y]; iColumnIndex < iMaxIndexHeight; ++iColumnIndex)
@@ -561,11 +581,16 @@ public class GridGenerator
 				m_aRegisteredVisitedCellsID[iColumnIndex, iRowIndex] = m_aShikakuBlocks.Count;
 			}
 		}
+		Debug.Log("after updating :");
+		Display(m_aRegisteredVisitedCellsID);
 	}
 
 	private void UpdateGridsWithMergedBlock(ShikakuBlock block, int iBlockIndextoReplace)
 	{
 		m_aShikakuBlocks[iBlockIndextoReplace] = block;
+
+		Debug.Log("before merging (adding block : " + block + ") of index '"+iBlockIndextoReplace+"' :");
+		Display(m_aRegisteredVisitedCellsID);
 
 		int iMaxIndexHeight = block.pos[AXIS_Y] + block.size[AXIS_Y];
 		int iMaxIndexWidth = block.pos[AXIS_X] + block.size[AXIS_X];
@@ -579,8 +604,10 @@ public class GridGenerator
 			for (int iRowIndex = block.pos[AXIS_X]; iRowIndex < iMaxIndexWidth; ++iRowIndex)
 			{
 				m_aRegisteredVisitedCells[iColumnIndex, iRowIndex] = block.iAreaValue;
-				m_aRegisteredVisitedCellsID[iColumnIndex, iRowIndex] = m_aShikakuBlocks.Count;
+				m_aRegisteredVisitedCellsID[iColumnIndex, iRowIndex] = iBlockIndextoReplace+1;
 			}
 		}
+		Debug.Log("after merging:");
+		Display(m_aRegisteredVisitedCellsID);
 	}
 }
