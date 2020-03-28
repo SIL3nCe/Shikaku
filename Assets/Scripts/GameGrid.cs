@@ -13,9 +13,9 @@ public class GameGrid : MonoBehaviour
     public GameObject cellPrefab;
 
     // Height = i (y), Width = j (x)
-    private GameObject[,] aGrid;
+    private GameObject[,] aGridView;
 
-    private int[,] aGridModel;
+    private GridModel aGridModel;
 
     private bool bSelection;
     private Vector3 vSelectionStart;
@@ -35,9 +35,11 @@ public class GameGrid : MonoBehaviour
     {
         areaCounter = 0;
 
-        height = 10; width = 10; //Hardcoded 5*5 grid for tests
+        height = 5; width = 5; //Hardcoded for tests
 
-        aGrid = new GameObject[height, width];
+        aGridModel = new GridModel(width, height);
+
+        aGridView = new GameObject[height, width];
 
         // Set grid center in 0,0
         float fTopLeftX = 0.5f - (width * 0.5f);
@@ -49,59 +51,79 @@ public class GameGrid : MonoBehaviour
         {
             for (int iWidth = 0; iWidth < width; ++iWidth)
             {
-                aGrid[iHeight, iWidth] = Instantiate(cellPrefab, new Vector3(x, y, 0), Quaternion.identity);
-                aGrid[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, 1.0f, this);
+                aGridView[iHeight, iWidth] = Instantiate(cellPrefab, new Vector3(x, y, 0), Quaternion.identity);
+                aGridView[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, 1.0f, this);
                 x += cellSize + 0.08f;
             }
             x = fTopLeftX;
             y -= cellSize + 0.08f;
         }
 
-        /*Codingame test
-         1 solution
-            0 0 0 0 0 0 0 0 9 0
-            0 0 0 0 0 0 9 0 0 0
-            0 0 0 0 0 0 0 0 0 0
-            0 20 0 0 8 0 0 0 6 0
-            0 0 0 0 0 0 0 0 0 0
-            0 0 0 6 0 0 6 0 0 0
-            10 0 0 0 0 0 0 0 0 0
-            0 0 0 0 0 0 0 0 0 0
-            0 0 6 0 6 0 0 0 8 0
-            0 0 0 0 0 0 6 0 0 0
-         */
+        //aGridView[0, 8].GetComponent<Cell>().SetAreaSize(9);
+        //aGridView[1, 6].GetComponent<Cell>().SetAreaSize(9);
+        //aGridView[3, 1].GetComponent<Cell>().SetAreaSize(20);
+        //aGridView[3, 4].GetComponent<Cell>().SetAreaSize(8);
+        //aGridView[3, 8].GetComponent<Cell>().SetAreaSize(6);
+        //aGridView[5, 3].GetComponent<Cell>().SetAreaSize(6);
+        //aGridView[5, 6].GetComponent<Cell>().SetAreaSize(6);
+        //aGridView[6, 0].GetComponent<Cell>().SetAreaSize(10);
+        //aGridView[8, 2].GetComponent<Cell>().SetAreaSize(6);
+        //aGridView[8, 4].GetComponent<Cell>().SetAreaSize(6);
+        //aGridView[8, 8].GetComponent<Cell>().SetAreaSize(8);
+        //aGridView[9, 6].GetComponent<Cell>().SetAreaSize(6);
 
-        aGrid[0, 8].GetComponent<Cell>().SetAreaSize(9);
-        aGrid[1, 6].GetComponent<Cell>().SetAreaSize(9);
-        aGrid[3, 1].GetComponent<Cell>().SetAreaSize(20);
-        aGrid[3, 4].GetComponent<Cell>().SetAreaSize(8);
-        aGrid[3, 8].GetComponent<Cell>().SetAreaSize(6);
-        aGrid[5, 3].GetComponent<Cell>().SetAreaSize(6);
-        aGrid[5, 6].GetComponent<Cell>().SetAreaSize(6);
-        aGrid[6, 0].GetComponent<Cell>().SetAreaSize(10);
-        aGrid[8, 2].GetComponent<Cell>().SetAreaSize(6);
-        aGrid[8, 4].GetComponent<Cell>().SetAreaSize(6);
-        aGrid[8, 8].GetComponent<Cell>().SetAreaSize(8);
-        aGrid[9, 6].GetComponent<Cell>().SetAreaSize(6);
-
-        //TODO grid generator
         //Hardcoded 5*5 grid for tests
-        //aGrid[0, 0].GetComponent<Cell>().SetAreaSize(2);
-        //aGrid[0, 2].GetComponent<Cell>().SetAreaSize(4);
-        //aGrid[0, 3].GetComponent<Cell>().SetAreaSize(2);
-        //aGrid[1, 1].GetComponent<Cell>().SetAreaSize(4);
-        //aGrid[1, 3].GetComponent<Cell>().SetAreaSize(2);
-        //aGrid[2, 0].GetComponent<Cell>().SetAreaSize(2);
-        //aGrid[2, 4].GetComponent<Cell>().SetAreaSize(3);
-        //aGrid[4, 2].GetComponent<Cell>().SetAreaSize(3);
-        //aGrid[4, 3].GetComponent<Cell>().SetAreaSize(3);
+        //aGridView[0, 0].GetComponent<Cell>().SetAreaSize(2);
+        //aGridView[0, 2].GetComponent<Cell>().SetAreaSize(4);
+        //aGridView[0, 3].GetComponent<Cell>().SetAreaSize(2);
+        //aGridView[1, 1].GetComponent<Cell>().SetAreaSize(4);
+        //aGridView[1, 3].GetComponent<Cell>().SetAreaSize(2);
+        //aGridView[2, 0].GetComponent<Cell>().SetAreaSize(2);
+        //aGridView[2, 4].GetComponent<Cell>().SetAreaSize(3);
+        //aGridView[4, 2].GetComponent<Cell>().SetAreaSize(3);
+        //aGridView[4, 3].GetComponent<Cell>().SetAreaSize(3);
 
-		GridGenerator generator = new GridGenerator();
-		int[,] aTestGrid = new int[0, 0];
-		bool bGenerated = generator.Generate(ref aTestGrid, GridGenerator.EDifficulty.easy);
-		Assert.IsTrue(bGenerated);
+        // Multiple solutions
+        aGridView[0, 0].GetComponent<Cell>().SetAreaSize(3);
+        aGridView[0, 3].GetComponent<Cell>().SetAreaSize(4);
+        aGridView[1, 2].GetComponent<Cell>().SetAreaSize(2);
+        aGridView[1, 3].GetComponent<Cell>().SetAreaSize(2);
+        aGridView[2, 1].GetComponent<Cell>().SetAreaSize(3);
+        aGridView[2, 3].GetComponent<Cell>().SetAreaSize(3);
+        aGridView[3, 0].GetComponent<Cell>().SetAreaSize(2);
+        aGridView[3, 2].GetComponent<Cell>().SetAreaSize(2);
+        aGridView[4, 4].GetComponent<Cell>().SetAreaSize(2);
+        aGridView[4, 3].GetComponent<Cell>().SetAreaSize(2);
 
-        resolver.Resolve(aTestGrid.GetLength(1), aTestGrid.GetLength(0), aTestGrid);
+        //GridGenerator generator = new GridGenerator();
+        //int[,] aTestGrid = new int[0, 0];
+        //bool bGenerated = generator.Generate(ref aTestGrid, GridGenerator.EDifficulty.easy);
+        //Assert.IsTrue(bGenerated);
+
+        //resolver.Resolve(aTestGrid.GetLength(1), aTestGrid.GetLength(0), aTestGrid);
+
+        for (int iHeight = 0; iHeight < height; ++iHeight)
+        {
+            for (int iWidth = 0; iWidth < width; ++iWidth)
+            {
+                int val = aGridView[iHeight, iWidth].GetComponent<Cell>().GetAreaOriginValue();
+
+                aGridModel.m_aCells[iHeight, iWidth] = val;
+
+                if (val != 0)
+                {
+                    Area area = new Area
+                    {
+                        x = iHeight,
+                        y = iWidth,
+                        areaValue = val,
+                    };
+                    aGridModel.m_aAreaList.Add(area);
+                }
+            }
+        }
+
+        resolver.Resolve(width, height, aGridModel);
     }
 
     void OnGUI()
@@ -126,7 +148,7 @@ public class GameGrid : MonoBehaviour
             {
                 for (int iWidth = 0; iWidth < width; ++iWidth)
                 {
-                    Cell cell = aGrid[iHeight, iWidth].GetComponent<Cell>();
+                    Cell cell = aGridView[iHeight, iWidth].GetComponent<Cell>();
                     if (cell.IsInGivenArea(areaId))
                     {
                         cell.SetAreaId(-1);
@@ -161,7 +183,7 @@ public class GameGrid : MonoBehaviour
             {
                 for (int iWidth = 0; iWidth < width; ++iWidth)
                 {
-                    if (RectTransformUtility.RectangleContainsScreenPoint(aGrid[iHeight, iWidth].GetComponent<RectTransform>(), vCurrMousePos))
+                    if (RectTransformUtility.RectangleContainsScreenPoint(aGridView[iHeight, iWidth].GetComponent<RectTransform>(), vCurrMousePos))
                     {
                         vCellEnd.x = iHeight;
                         vCellEnd.y = iWidth;
@@ -178,7 +200,7 @@ public class GameGrid : MonoBehaviour
                 {
                     for (int j = Mathf.Min(vCellStart.y, vCellEnd.y); j <= Mathf.Max(vCellStart.y, vCellEnd.y); ++j)
                     {
-                        Cell cell = aGrid[i, j].GetComponent<Cell>();
+                        Cell cell = aGridView[i, j].GetComponent<Cell>();
                         cell.GetComponent<SpriteRenderer>().color = areaColor;
                         cell.SetAreaId(areaCounter);
                     }
@@ -198,7 +220,7 @@ public class GameGrid : MonoBehaviour
         {
             for (int iWidth = 0; iWidth < width; ++iWidth)
             {
-                Cell cell = aGrid[iHeight, iWidth].GetComponent<Cell>();
+                Cell cell = aGridView[iHeight, iWidth].GetComponent<Cell>();
                 if (!cell.IsInArea())
                     return;
             }
@@ -225,7 +247,7 @@ public class GameGrid : MonoBehaviour
         {
             for (int j = Mathf.Min(vStart.y, vEnd.y); j <= Mathf.Max(vStart.y, vEnd.y); ++j)
             {
-                Cell cell = aGrid[i, j].GetComponent<Cell>();
+                Cell cell = aGridView[i, j].GetComponent<Cell>();
 
                 // A cell in area is already in another area
                 if (cell.IsInArea())
