@@ -35,7 +35,7 @@ public class GameGrid : MonoBehaviour
     {
         areaCounter = 0;
 
-        height = 5; width = 5; //Hardcoded 5*5 grid for tests
+        height = 10; width = 10; //Hardcoded 5*5 grid for tests
 
         aGrid = new GameObject[height, width];
 
@@ -57,17 +57,44 @@ public class GameGrid : MonoBehaviour
             y -= cellSize + 0.08f;
         }
 
+        /*Codingame test
+         1 solution
+            0 0 0 0 0 0 0 0 9 0
+            0 0 0 0 0 0 9 0 0 0
+            0 0 0 0 0 0 0 0 0 0
+            0 20 0 0 8 0 0 0 6 0
+            0 0 0 0 0 0 0 0 0 0
+            0 0 0 6 0 0 6 0 0 0
+            10 0 0 0 0 0 0 0 0 0
+            0 0 0 0 0 0 0 0 0 0
+            0 0 6 0 6 0 0 0 8 0
+            0 0 0 0 0 0 6 0 0 0
+         */
+
+        aGrid[0, 8].GetComponent<Cell>().SetAreaSize(9);
+        aGrid[1, 6].GetComponent<Cell>().SetAreaSize(9);
+        aGrid[3, 1].GetComponent<Cell>().SetAreaSize(20);
+        aGrid[3, 4].GetComponent<Cell>().SetAreaSize(8);
+        aGrid[3, 8].GetComponent<Cell>().SetAreaSize(6);
+        aGrid[5, 3].GetComponent<Cell>().SetAreaSize(6);
+        aGrid[5, 6].GetComponent<Cell>().SetAreaSize(6);
+        aGrid[6, 0].GetComponent<Cell>().SetAreaSize(10);
+        aGrid[8, 2].GetComponent<Cell>().SetAreaSize(6);
+        aGrid[8, 4].GetComponent<Cell>().SetAreaSize(6);
+        aGrid[8, 8].GetComponent<Cell>().SetAreaSize(8);
+        aGrid[9, 6].GetComponent<Cell>().SetAreaSize(6);
+
         //TODO grid generator
         //Hardcoded 5*5 grid for tests
-        aGrid[0, 0].GetComponent<Cell>().SetAreaSize(2);
-        aGrid[0, 2].GetComponent<Cell>().SetAreaSize(4);
-        aGrid[0, 3].GetComponent<Cell>().SetAreaSize(2);
-        aGrid[1, 1].GetComponent<Cell>().SetAreaSize(4);
-        aGrid[1, 3].GetComponent<Cell>().SetAreaSize(2);
-        aGrid[2, 0].GetComponent<Cell>().SetAreaSize(2);
-        aGrid[2, 4].GetComponent<Cell>().SetAreaSize(3);
-        aGrid[4, 2].GetComponent<Cell>().SetAreaSize(3);
-        aGrid[4, 3].GetComponent<Cell>().SetAreaSize(3);
+        //aGrid[0, 0].GetComponent<Cell>().SetAreaSize(2);
+        //aGrid[0, 2].GetComponent<Cell>().SetAreaSize(4);
+        //aGrid[0, 3].GetComponent<Cell>().SetAreaSize(2);
+        //aGrid[1, 1].GetComponent<Cell>().SetAreaSize(4);
+        //aGrid[1, 3].GetComponent<Cell>().SetAreaSize(2);
+        //aGrid[2, 0].GetComponent<Cell>().SetAreaSize(2);
+        //aGrid[2, 4].GetComponent<Cell>().SetAreaSize(3);
+        //aGrid[4, 2].GetComponent<Cell>().SetAreaSize(3);
+        //aGrid[4, 3].GetComponent<Cell>().SetAreaSize(3);
 
 		GridGenerator generator = new GridGenerator();
 		int[,] aTestGrid = new int[0, 0];
