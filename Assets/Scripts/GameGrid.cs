@@ -27,6 +27,10 @@ public class GameGrid : MonoBehaviour
 
     void Start()
     {
+		//
+		// Tests
+		//GridGenerator.TestValidityNeighbourSplitting();
+
         resolver = new Resolver();
         Generate();
     }

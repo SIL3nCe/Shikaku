@@ -22,6 +22,12 @@ class GridGenerator
 
 	public static int AXIS_Y = 0;
 	public static int AXIS_X = 1;
+	public static string[] astrAxis = {"Y", "X"};
+
+	public static int[] directionTop	= new int[] { -1, +0 };
+	public static int[] directionRight	= new int[] { +0, +1 };
+	public static int[] directionBottom = new int[] { +1, +0 };
+	public static int[] directionLeft	= new int[] { +0, -1 };
 
 	private class ShikakuBlock
 	{
@@ -438,8 +444,6 @@ class GridGenerator
 
 	private bool ResolveGridValidity()
 	{
-		bool bValid = true;
-
 		//
 		// Check validity of grid : check presence of 0
 		for (int iColumnIndex = 0; iColumnIndex<m_size[AXIS_Y]; ++iColumnIndex)
@@ -450,49 +454,34 @@ class GridGenerator
 				// If empty, try to fill it
 				if(0 == m_aRegisteredVisitedCells[iColumnIndex, iRowIndex])
 				{
-					bValid = false;
-
 					//
 					// Check for neighbouring empty cells in lines/columns
 
 					//
-					// Vertically
-					int[] iPositionUp	= GrowEmptyCellTowardsDirection(AXIS_Y, -1, iColumnIndex, iRowIndex);
-					int[] iPositionDown	= GrowEmptyCellTowardsDirection(AXIS_Y, +1, iColumnIndex, iRowIndex);
-					if(iPositionUp[AXIS_Y] != iPositionDown[AXIS_Y])
-					{
-						ShikakuBlock newBlock = new ShikakuBlock(iPositionUp, new int[] { iPositionDown[AXIS_Y]-iPositionUp[AXIS_Y]+1, iPositionDown[AXIS_X] - iPositionUp[AXIS_X] + 1 });
-						Debug.Log("Forming new line vertically");
-						UpdateGridsWithBlock(newBlock);
-					}
-					else
+					// Grow cell vertically (only 0)
+					if(!GrowEmptyCellTowardsAxis(AXIS_Y, iColumnIndex, iRowIndex))
 					{
 						//
-						// Horizontally
-						int[] iPositionLeft		= GrowEmptyCellTowardsDirection(AXIS_X, -1, iColumnIndex, iRowIndex);
-						int[] iPositionRight	= GrowEmptyCellTowardsDirection(AXIS_X, +1, iColumnIndex, iRowIndex);
-						if (iPositionLeft[AXIS_X] != iPositionRight[AXIS_X])
-						{
-							ShikakuBlock newBlock = new ShikakuBlock(iPositionLeft, new int[] { iPositionRight[AXIS_Y] - iPositionLeft[AXIS_Y] + 1,  iPositionRight[AXIS_X] - iPositionLeft[AXIS_X] + 1 });
-							Debug.Log("Forming new line horizontally");
-							UpdateGridsWithBlock(newBlock);
-						}
-						else
+						// Grow cell horizontally (only 0)
+						if (!GrowEmptyCellTowardsAxis(AXIS_X, iColumnIndex, iRowIndex))
 						{
 							//
-							// Try merging from another single block
-							if (!TryMergingEmptyCellWithNeighbour(iColumnIndex, iRowIndex, -1, +0))				// Up
+							// Try merging from a linear block
+							if (!TryMergingEmptyCellWithNeighbour(iColumnIndex, iRowIndex, -1, +0))             // Up
 							{
-								if (!TryMergingEmptyCellWithNeighbour(iColumnIndex, iRowIndex, +0, +1))			// Right
+								if (!TryMergingEmptyCellWithNeighbour(iColumnIndex, iRowIndex, +0, +1))         // Right
 								{
-									if (!TryMergingEmptyCellWithNeighbour(iColumnIndex, iRowIndex, +1, +0))		// Bottom
+									if (!TryMergingEmptyCellWithNeighbour(iColumnIndex, iRowIndex, +1, +0))     // Bottom
 									{
 										if (!TryMergingEmptyCellWithNeighbour(iColumnIndex, iRowIndex, +0, -1)) // Left
 										{
 											//
 											// If merging is not possible, split a neighbour to create a favorable
 											// merging for next iteration
-											SplitNeighbour(iColumnIndex, iRowIndex);
+											if(!SplitNeighbour(iColumnIndex, iRowIndex))
+											{
+												Debug.Log("Merge could not be done.");
+											}
 										}
 										else
 										{
@@ -515,12 +504,36 @@ class GridGenerator
 							}
 						}
 					}
+					return false;
 				}
 			}
 		}
 
-		return bValid;
+		return true;
 	}
+
+	private bool GrowEmptyCellTowardsAxis(int iAxis, int iOriginY, int iOriginX)
+	{
+		int[] iPositionM = GrowEmptyCellTowardsDirection(iAxis, -1, iOriginY, iOriginX);
+		int[] iPositionP = GrowEmptyCellTowardsDirection(iAxis, +1, iOriginY, iOriginX);
+		if (iPositionM[iAxis] != iPositionP[iAxis])
+		{
+			int iOtherAxis = iAxis ^ 1;
+			ShikakuBlock newBlock = new ShikakuBlock();
+			newBlock.pos = iPositionM;
+			newBlock.size[iOtherAxis] = iPositionP[iOtherAxis] - iPositionM[iOtherAxis] + 1;
+			newBlock.size[iAxis] = iPositionP[iAxis] - iPositionM[iAxis] + 1;
+			newBlock.iAreaValue = newBlock.size[iAxis] * newBlock.size[iOtherAxis];
+
+			Debug.Log("Forming new line along axis "+astrAxis[iAxis]);
+			UpdateGridsWithBlock(newBlock);
+
+			return true;
+		}
+
+		return false;
+	}
+
 
 	private int[] GrowEmptyCellTowardsDirection(int iAxis, int iDirection, int iOriginY, int iOriginX)
 	{
@@ -569,10 +582,194 @@ class GridGenerator
 		return false;
 	}
 
-	private void SplitNeighbour(int iColumnIndex, int iRowIndex)
+	private bool SplitNeighbour(int iColumnIndex, int iRowIndex)
 	{
+		int[] origin = new int[]{ iColumnIndex, iRowIndex };
+
 		// 
-		// TODO
+		// Top
+		if (SplitNeighbourDirection(origin, directionTop, AXIS_Y))
+		{
+			if(GrowEmptyCellTowardsAxis(AXIS_Y, iColumnIndex, iRowIndex))
+			{
+				return true;
+			}
+			else
+			{
+				Debug.Log("Could not grow cell after freeing space, THIS IS NOT NORMAL !!");
+			}
+		}
+		else
+		{ 
+			// 
+			// Right
+			if (SplitNeighbourDirection(origin, directionRight, AXIS_X))
+			{
+				if (GrowEmptyCellTowardsAxis(AXIS_X, iColumnIndex, iRowIndex))
+				{
+					return true;
+				}
+				else
+				{
+					Debug.Log("Could not grow cell after freeing space, THIS IS NOT NORMAL !!");
+				}
+			}
+			else
+			{
+				// 
+				// Bottom
+				if (SplitNeighbourDirection(origin, directionBottom, AXIS_Y))
+				{
+					if (GrowEmptyCellTowardsAxis(AXIS_Y, iColumnIndex, iRowIndex))
+					{
+						return true;
+					}
+					else
+					{
+						Debug.Log("Could not grow cell after freeing space, THIS IS NOT NORMAL !!");
+					}
+				}
+				else
+				{
+					// 
+					// Left
+					if (SplitNeighbourDirection(origin, directionLeft, AXIS_X))
+					{
+						if (GrowEmptyCellTowardsAxis(AXIS_X, iColumnIndex, iRowIndex))
+						{
+							return true;
+						}
+						else
+						{
+							Debug.Log("Could not grow cell after freeing space, THIS IS NOT NORMAL !!");
+						}
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private bool SplitNeighbourDirection(int[] origin, int[] direction, int iAxis)
+	{
+		int[] nextPos = new int[] { 0,0 };
+		if(IsValidPosition(origin, direction, ref nextPos))
+		{
+			//
+			// Retrieve block to split
+			int iShikakuBlockIndex = m_aRegisteredVisitedCellsID[nextPos[AXIS_Y], nextPos[AXIS_X]] - 1;
+			ShikakuBlock block = m_aShikakuBlocks[iShikakuBlockIndex];
+			int iOtherAxis = iAxis ^ 1;
+
+			//
+			// Check if nextPos belongs to a rectangle, if so split it to have
+			// a line/column in nextPos which will be then split again.
+			if (block.size[iOtherAxis] > 1 && block.size[iAxis] > 1)
+			{
+				//
+				// First split from top-left to nextPos-1
+				ShikakuBlock blockReplacing = new ShikakuBlock();
+				blockReplacing.pos = block.pos;
+				blockReplacing.size[iOtherAxis] = block.size[iOtherAxis];
+				blockReplacing.size[iAxis] = block.size[iAxis] - 1;
+				blockReplacing.iAreaValue = blockReplacing.size[iAxis] * blockReplacing.size[iOtherAxis];
+				UpdateGridsWithMergedBlock(blockReplacing, iShikakuBlockIndex);
+
+				//
+				// Then split +1-most line/column
+				ShikakuBlock blockLinear = new ShikakuBlock();
+				blockLinear.pos[iAxis] = nextPos[iAxis];
+				blockLinear.pos[iOtherAxis] = block.pos[iOtherAxis];
+				blockLinear.size[iOtherAxis] = block.size[iOtherAxis];
+				blockLinear.size[iAxis] = 1;
+				blockLinear.iAreaValue = blockLinear.size[iAxis] * blockLinear.size[iOtherAxis];
+				UpdateGridsWithBlock(blockLinear);
+
+				//
+				// Finally update block reference to new block
+				block = blockLinear;
+			}
+			
+			//
+			// Check size before splitting in iOtherAxis way
+			if (block.size[iAxis] == 1 && block.size[iOtherAxis] > 2)
+			{
+	            //
+				// Check splitting consistency by creating new blocks
+				List <ShikakuBlock> aSplitBlocks = new List<ShikakuBlock>();
+				if(block.pos[iOtherAxis] == nextPos[iOtherAxis])	// neighbour corresponds to top-left
+				{
+					ShikakuBlock newBlock = new ShikakuBlock();
+					newBlock.pos = new int[] { block.pos[iAxis] - direction[iOtherAxis], block.pos[iOtherAxis] - direction[iAxis] };
+					newBlock.size[iOtherAxis] = block.size[iOtherAxis] - 1;
+					newBlock.size[iAxis] = block.size[iAxis];
+					newBlock.iAreaValue = newBlock.size[iAxis] * newBlock.size[iOtherAxis];
+
+					aSplitBlocks.Add(newBlock);
+				}
+				else if(nextPos[iOtherAxis] == block.pos[iOtherAxis] + block.size[iOtherAxis] -1)	// neighbour corresponds to max size
+				{
+					ShikakuBlock newBlock = new ShikakuBlock();
+					newBlock.pos = block.pos;
+					newBlock.size[iOtherAxis] = block.size[iOtherAxis] - 1;
+					newBlock.size[iAxis] = block.size[iAxis];
+					newBlock.iAreaValue = newBlock.size[iAxis] * newBlock.size[iOtherAxis];
+
+					aSplitBlocks.Add(newBlock);
+				}
+				else		// neighbour belons to center needing sub-splitting
+				{
+					//
+					// First check if partitionning size doesn't leave single cells
+					int iMaxSizeIndex = block.pos[iOtherAxis] + block.size[iOtherAxis] - 1;
+					if(nextPos[iOtherAxis] - block.pos[iOtherAxis] > 1 && iMaxSizeIndex - nextPos[iOtherAxis] > 1)
+					{
+						ShikakuBlock newBlock1 = new ShikakuBlock();
+						newBlock1.pos = block.pos;
+						newBlock1.size[iOtherAxis] = nextPos[iOtherAxis] - block.pos[iOtherAxis];
+						newBlock1.size[iAxis] = block.size[iAxis];
+						newBlock1.iAreaValue = newBlock1.size[iAxis] * newBlock1.size[iOtherAxis];
+
+						ShikakuBlock newBlock2 = new ShikakuBlock();
+						newBlock2.pos[iAxis] = nextPos[iAxis];
+						newBlock2.pos[iOtherAxis] = nextPos[iOtherAxis] + 1;
+						newBlock2.size[iAxis] = block.size[iAxis];
+						newBlock2.size[iOtherAxis] = iMaxSizeIndex - nextPos[iOtherAxis];
+						newBlock2.iAreaValue = newBlock2.size[iAxis] * newBlock2.size[iOtherAxis];
+
+						aSplitBlocks.Add(newBlock1);
+						aSplitBlocks.Add(newBlock2);
+					}
+				}
+
+				//
+				// Update nextPos to 0
+				m_aRegisteredVisitedCells[nextPos[AXIS_Y], nextPos[AXIS_X]] = 0;
+				m_aRegisteredVisitedCellsID[nextPos[AXIS_Y], nextPos[AXIS_X]] = 0;
+
+				//
+				// First block : replace existing one
+				UpdateGridsWithMergedBlock(aSplitBlocks[0], iShikakuBlockIndex);
+				if (aSplitBlocks.Count > 1)
+				{
+					UpdateGridsWithBlock(aSplitBlocks[1]);
+				}
+
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private bool IsValidPosition(int[] origin, int[] direction, ref int[] nextPos)
+	{
+		nextPos[AXIS_Y] = origin[AXIS_Y] + direction[AXIS_Y];
+		nextPos[AXIS_X] = origin[AXIS_X] + direction[AXIS_X];
+		return nextPos[AXIS_Y] >= 0
+			&& nextPos[AXIS_X] >= 0
+			&& nextPos[AXIS_Y] < m_size[AXIS_Y]
+			&& nextPos[AXIS_X] < m_size[AXIS_X];
 	}
 
 	private void UpdateGridsWithBlock(ShikakuBlock block)
@@ -624,5 +821,41 @@ class GridGenerator
 		}
 		Debug.Log("after merging:");
 		Display(m_aRegisteredVisitedCellsID);
+	}
+
+	public static void TestValidityNeighbourSplitting()
+	{
+		GridGenerator generator = new GridGenerator();
+
+		generator.m_size = new int[] {5,5};
+		generator.m_aRegisteredVisitedCells = new int[,]
+		{
+			{4, 4, 4, 4, 2},
+			{6, 6, 6, 0, 2},
+			{6, 6, 6, 6, 6},
+			{2, 4, 4, 6, 6},
+			{2, 4, 4, 6, 6}
+		};
+		generator.m_aRegisteredVisitedCellsID = new int[,]
+		{
+			{4, 4, 4, 4, 2},
+			{6, 6, 6, 0, 2},
+			{6, 6, 6, 3, 3},
+			{1, 5, 5, 3, 3},
+			{1, 5, 5, 3, 3}
+		};
+		generator.m_aShikakuBlocks = new List<ShikakuBlock>();
+		generator.m_aShikakuBlocks.Add(new ShikakuBlock(new int[] {3,0}, new int[] {2,1}));
+		generator.m_aShikakuBlocks.Add(new ShikakuBlock(new int[] {0,4}, new int[] {2,1}));
+		generator.m_aShikakuBlocks.Add(new ShikakuBlock(new int[] {2,3}, new int[] {3,2}));
+		generator.m_aShikakuBlocks.Add(new ShikakuBlock(new int[] {0,0}, new int[] {1,4}));
+		generator.m_aShikakuBlocks.Add(new ShikakuBlock(new int[] {3,1}, new int[] {2,2}));
+		generator.m_aShikakuBlocks.Add(new ShikakuBlock(new int[] {1,0}, new int[] {2,3}));
+
+		bool bValid;
+		bValid = generator.ResolveGridValidity();
+		Assert.IsFalse(bValid);
+		bValid = generator.ResolveGridValidity();
+		Assert.IsTrue(bValid);
 	}
 }
