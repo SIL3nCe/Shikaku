@@ -5,9 +5,8 @@ using UnityEngine.Assertions;
 
 public class GameGrid : MonoBehaviour
 {
-    [Tooltip("Grid size")]
-    public int width;
-    public int height;
+    private int width = 0;
+    private int height = 0;
 
     [Tooltip("Cell object to instantiate")]
     public GameObject cellPrefab;
@@ -17,11 +16,13 @@ public class GameGrid : MonoBehaviour
 
     private GridModel aGridModel;
 
+    private int usedCellCounter;
+    private bool bGridEnded;
+
     private bool bSelection;
     private Vector3 vSelectionStart;
     private Vector2Int vCellStart;
-
-    private int areaCounter;
+    private Vector2Int vCellEnd;
 
     private Resolver resolver;
 
@@ -30,21 +31,37 @@ public class GameGrid : MonoBehaviour
 		//
 		// Tests
 		//GridGenerator.TestValidityNeighbourSplitting();
-
-        resolver = new Resolver();
-        Generate();
     }
 
-    public void Generate()
+    public void Clean()
     {
+        resolver = null;
+        aGridModel = null;
 
+        for (int i = 0; i < height; ++i)
+        {
+            for (int j = 0; j < width; ++j)
+            {
+                Destroy(aGridView[i, j]);
+            }
+        }
+        usedCellCounter = 0;
+    }
+
+    public void Generate(EDifficulty eDifficulty)
+    {
+        Clean();
+
+        Debug.Log("Generate grid");
+        float fTimeCounter = Time.realtimeSinceStartup;
         GridGenerator generator = new GridGenerator();
-        var retVal = generator.Generate(GridGenerator.EDifficulty.easy);
+        var retVal = generator.Generate(eDifficulty);
         Assert.IsTrue(retVal.Item1);
+        Debug.Log("Generated grid in " + (Time.realtimeSinceStartup - fTimeCounter));
 
         aGridModel = retVal.Item2;
+        aGridModel.m_aAreaList.Sort();
 
-        areaCounter = 0;
         height = aGridModel.m_iHeight;
         width = aGridModel.m_iWidth;
 
@@ -63,6 +80,7 @@ public class GameGrid : MonoBehaviour
                 aGridView[iHeight, iWidth] = Instantiate(cellPrefab, new Vector3(x, y, 0), Quaternion.identity);
                 aGridView[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, 1.0f, this);
                 x += cellSize + 0.08f;
+                usedCellCounter++;
             }
             x = fTopLeftX;
             y -= cellSize + 0.08f;
@@ -128,7 +146,53 @@ public class GameGrid : MonoBehaviour
         //    }
         //}
 
+        Debug.Log("Resolving grid");
+        fTimeCounter = Time.realtimeSinceStartup;
+        resolver = new Resolver();
         resolver.Resolve(aGridModel);
+        Debug.Log("Resolved grid in " + (Time.realtimeSinceStartup - fTimeCounter));
+
+        bGridEnded = false;
+    }
+
+    public bool CheckGridFeasbility()
+    {
+        if (bGridEnded)
+            return true;
+
+        // Check in solutions if current grid is valid based on solver solutions
+        return -1 != resolver.CheckGridFeasbility(aGridModel);
+    }
+
+    public bool TakeAGridStep()
+    {
+        if (bGridEnded)
+            return false;
+
+        // Search for the first not done yet origin and try to complete it
+        int solutionId = resolver.CheckGridFeasbility(aGridModel);
+        if (-1 != solutionId)
+        {
+            int nArea = aGridModel.m_aAreaList.Count;
+            for (int iArea = 0; iArea < nArea; ++iArea)
+            {
+                if (-1 == aGridModel.m_aAreaList[iArea].startX)
+                {
+                    Area area = resolver.GetCompletedArea(solutionId, iArea);
+
+                    vCellStart.x = area.startX;
+                    vCellStart.y = area.startY;
+                    vCellEnd.x = vCellStart.x + (area.height - 1);
+                    vCellEnd.y = vCellStart.y + (area.width - 1);
+
+                    OnSelectionEnded();
+
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
 
     void OnGUI()
@@ -140,12 +204,15 @@ public class GameGrid : MonoBehaviour
 
             // TODO Keep last known size if new covered cells give an invalid area
 
-            GUI.Box(new Rect(vSelectionStart.x, vSelectionStart.y, vCurrMousePos.x - vSelectionStart.x, vCurrMousePos.y - vSelectionStart.y), "vntmlrdpapds");
+            GUI.Box(new Rect(vSelectionStart.x, vSelectionStart.y, vCurrMousePos.x - vSelectionStart.x, vCurrMousePos.y - vSelectionStart.y), ":aaaaaaaaaaaaaaaaaaaaaaaah:");
         }
     }
     
     public void BeginSelection(Vector2Int cellCoord, int areaId)
     {
+        if (bGridEnded)
+            return;
+
         if (areaId >= 0)
         {
             // Already in area, delete this area
@@ -156,8 +223,10 @@ public class GameGrid : MonoBehaviour
                     Cell cell = aGridView[iHeight, iWidth].GetComponent<Cell>();
                     if (cell.IsInGivenArea(areaId))
                     {
-                        cell.SetAreaId(-1);
+                        aGridModel.m_aAreaList[cell.areaId].Reset();
+                        cell.areaId = -1;
                         cell.GetComponent<SpriteRenderer>().color = Color.white;
+                        usedCellCounter++;
                     }
                 }
             }
@@ -183,7 +252,6 @@ public class GameGrid : MonoBehaviour
             vCurrMousePos = Camera.main.ScreenToWorldPoint(vCurrMousePos);
 
             //TODO could be computed without loops, with cell size and coordinates
-            Vector2Int vCellEnd = new Vector2Int();
             for (int iHeight = 0; iHeight < height; ++iHeight)
             {
                 for (int iWidth = 0; iWidth < width; ++iWidth)
@@ -197,62 +265,65 @@ public class GameGrid : MonoBehaviour
                 }
             }
 
-            if (IsAreaValid(vCellStart, vCellEnd))
+            OnSelectionEnded();
+        }
+    }
+
+    private void OnSelectionEnded()
+    {
+        Vector2Int vTopLeft = new Vector2Int(Mathf.Min(vCellStart.x, vCellEnd.x), Mathf.Min(vCellStart.y, vCellEnd.y));
+        int areaWidth = Mathf.Abs(vCellStart.y - vCellEnd.y) + 1;
+        int areaHeight = Mathf.Abs(vCellStart.x - vCellEnd.x) + 1;
+
+        int areaId = -1;
+        if (IsAreaValid(vTopLeft, areaWidth, areaHeight, ref areaId))
+        {
+            Color areaColor = UnityEngine.Random.ColorHSV();
+            // TODO draw a rectangle around cells vs change cell color ?
+            for (int i = 0; i < areaHeight; ++i)
             {
-                Color areaColor = UnityEngine.Random.ColorHSV();
-                // TODO draw a rectangle around cells vs change cell color ?
-                for (int i = Mathf.Min(vCellStart.x, vCellEnd.x); i <= Mathf.Max(vCellStart.x, vCellEnd.x); ++i)
+                for (int j = 0; j < areaWidth; ++j)
                 {
-                    for (int j = Mathf.Min(vCellStart.y, vCellEnd.y); j <= Mathf.Max(vCellStart.y, vCellEnd.y); ++j)
-                    {
-                        Cell cell = aGridView[i, j].GetComponent<Cell>();
-                        cell.GetComponent<SpriteRenderer>().color = areaColor;
-                        cell.SetAreaId(areaCounter);
-                    }
+                    Cell cell = aGridView[vTopLeft.x + i, vTopLeft.y + j].GetComponent<Cell>();
+                    cell.GetComponent<SpriteRenderer>().color = areaColor;
+                    cell.areaId = areaId;
+                    usedCellCounter--;
                 }
+            }
 
-                areaCounter++;
+            aGridModel.m_aAreaList[areaId].startX = vTopLeft.x;
+            aGridModel.m_aAreaList[areaId].startY = vTopLeft.y;
+            aGridModel.m_aAreaList[areaId].width = areaWidth;
+            aGridModel.m_aAreaList[areaId].height = areaHeight;
 
-                CheckEndCondition();
+            if (usedCellCounter == 0)
+            {
+                OnGridEnded();
             }
         }
     }
 
-    private void CheckEndCondition()
+    private void OnGridEnded()
     {
-        //TODO add not-int-area counter instead
-        for (int iHeight = 0; iHeight < height; ++iHeight)
-        {
-            for (int iWidth = 0; iWidth < width; ++iWidth)
-            {
-                Cell cell = aGridView[iHeight, iWidth].GetComponent<Cell>();
-                if (!cell.IsInArea())
-                    return;
-            }
-        }
-
         // Grid is ended
-        // TODO - Button to generate next grid
+        bGridEnded = true;
         Debug.Log("GRID ENDED, GGWP");
     }
 
-    private bool IsAreaValid(Vector2Int vStart, Vector2Int vEnd)
+    private bool IsAreaValid(Vector2Int vTopLeft, int areaWidth, int areaHeight, ref int AreaId)
     {
         int nOrigin = 0;
 
-        //TODO Compute without loop ?
-        int x = 0;
-        for (int i = Mathf.Min(vStart.x, vEnd.x); i <= Mathf.Max(vStart.x, vEnd.x); ++i, ++x) ;
-        int y = 0;
-        for (int j = Mathf.Min(vStart.y, vEnd.y); j <= Mathf.Max(vStart.y, vEnd.y); ++j, ++y) ;
-        int nCells = x * y;
-        //Debug.Log(nCells);
+        int nCells = areaWidth * areaHeight;
 
-        for (int i = Mathf.Min(vStart.x, vEnd.x); i <= Mathf.Max(vStart.x, vEnd.x); ++i)
+        for (int i = 0; i < areaHeight; ++i)
         {
-            for (int j = Mathf.Min(vStart.y, vEnd.y); j <= Mathf.Max(vStart.y, vEnd.y); ++j)
+            int cellX = vTopLeft.x + i;
+            for (int j = 0; j < areaWidth; ++j)
             {
-                Cell cell = aGridView[i, j].GetComponent<Cell>();
+                int cellY = vTopLeft.y + j;
+
+                Cell cell = aGridView[cellX, cellY].GetComponent<Cell>();
 
                 // A cell in area is already in another area
                 if (cell.IsInArea())
@@ -267,6 +338,8 @@ public class GameGrid : MonoBehaviour
                     // Too much/not enough cells in area based on origin cell value
                     if (cell.GetAreaOriginValue() != nCells)
                         return false;
+
+                    AreaId = aGridModel.GetAreaId(cellX, cellY);
                 }
             }
         }

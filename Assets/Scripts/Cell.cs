@@ -7,7 +7,7 @@ public class Cell : MonoBehaviour
     private Vector2Int vCoordinates;
     private GameGrid gridObject;
 
-    private int areaId;
+    public int areaId { get; set; }
     private int areaSize; // Define if is an "area origin" cell
 
     public void Initialize(int x, int y, float size, GameGrid grid)
@@ -33,11 +33,6 @@ public class Cell : MonoBehaviour
     void OnMouseUp()
     {
         gridObject.StopSelection();
-    }
-
-    public void SetAreaId(int _areaId)
-    {
-        areaId = _areaId;
     }
 
     public bool IsInArea()

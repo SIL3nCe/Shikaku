@@ -21,6 +21,22 @@ class Area : IComparable
         startX = startY = width = height = -1;
     }
 
+    public Area(Area other)
+    {
+        x = other.x;
+        y = other.y;
+        value = other.value;
+        startX = other.startX;
+        startY = other.startY;
+        width = other.width;
+        height = other.height;
+    }
+
+    public void Reset()
+    {
+        startX = startY = width = height = -1;
+    }
+
     // For sort
     public int CompareTo(object Other)
     {
@@ -80,7 +96,7 @@ class GridModel
     public GridModel DeepCopy()
     {
         GridModel other = (GridModel)this.MemberwiseClone();
-        other.m_aAreaList = new List<Area>(m_aAreaList);
+        other.m_aAreaList = m_aAreaList.ConvertAll(area => new Area(area));
         other.m_aCells = m_aCells.Clone() as int[,];
         return other;
     }
@@ -118,6 +134,18 @@ class GridModel
         }
 
         // Nothing different
+        return -1;
+    }
+
+    public int GetAreaId(int x, int y)
+    {
+        int nArea = m_aAreaList.Count;
+        for (int i = 0; i < nArea; ++i)
+        {
+            if (m_aAreaList[i].x == x && m_aAreaList[i].y == y)
+                return i;
+        }
+
         return -1;
     }
 }

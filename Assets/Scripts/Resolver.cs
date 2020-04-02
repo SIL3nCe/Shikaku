@@ -6,8 +6,6 @@ using UnityEngine;
 
 class Resolver
 {
-    private List<Area> m_aAreaList;
-
     private List<GridModel> m_aGridList;
     private int m_iWidth;
     private int m_iHeight;
@@ -38,12 +36,14 @@ class Resolver
         return true;
     }
 
-    void AddValidArea(GridModel aGrid, Area area, int width, int height)
+    void AddValidArea(GridModel aGrid, int areaId, int width, int height)
     {
         // Height (line) = i (x), Width (column) = j (y)
 
         //Display(aGrid);
         //Debug.Log("test with area (x,y) " + height + " " + width);
+
+        Area area = aGrid.m_aAreaList[areaId];
 
         int startX = area.x - (height - 1);
         int startY = area.y - (width - 1);
@@ -74,6 +74,11 @@ class Resolver
                         }
                     }
 
+                    newGrid.m_aAreaList[areaId].startX = currX;
+                    newGrid.m_aAreaList[areaId].startY = currY;
+                    newGrid.m_aAreaList[areaId].width = width;
+                    newGrid.m_aAreaList[areaId].height= height;
+
                     // Push in global grid list
                     //Debug.Log("Add new solution: ");
                     //Debug.Log(newGrid.ToString());
@@ -83,17 +88,17 @@ class Resolver
         }
     }
 
-    void AddAllValidAreas(GridModel aGrid, Area area, int sideLength1, int sideLength2)
+    void AddAllValidAreas(GridModel aGrid, int areaId, int sideLength1, int sideLength2)
     {
-        AddValidArea(aGrid, area, sideLength1, sideLength2);
+        AddValidArea(aGrid, areaId, sideLength1, sideLength2);
 
         if (sideLength1 != sideLength2)
         {
-            AddValidArea(aGrid, area, sideLength2, sideLength1);
+            AddValidArea(aGrid, areaId, sideLength2, sideLength1);
         }
     }
 
-    void GenerateGridsFromOrigin(GridModel aGrid, Area area)
+    void GenerateGridsFromOrigin(GridModel aGrid, int areaId)
     {
         List<Tuple<int, int>> aTestedSizes = new List<Tuple<int, int>>();
         
@@ -111,7 +116,7 @@ class Resolver
 
         List<int> aDivisors = new List<int>{ 2, 3, 5, 7 };
         int currentMultiple = 1;
-        int iLastMultiple = area.value;
+        int iLastMultiple = aGrid.m_aAreaList[areaId].value;
         while (true)
         { 
             int iDivisorIndex = 0;
@@ -127,7 +132,7 @@ class Resolver
                     if (AlreadyTested(tuple))
                         break;
                     
-                    AddAllValidAreas(aGrid, area, iLastMultiple, currentMultiple);
+                    AddAllValidAreas(aGrid, areaId, iLastMultiple, currentMultiple);
 
                     aTestedSizes.Add(tuple);
 
@@ -142,16 +147,14 @@ class Resolver
     public void Resolve(GridModel aBaseGrid)
     {
         m_aGridList = new List<GridModel>();
-        m_aAreaList = new List<Area>(aBaseGrid.m_aAreaList);
-        m_aAreaList.Sort();
+        m_aGridList.Add(aBaseGrid);
 
         m_iWidth = aBaseGrid.m_iWidth;
         m_iHeight = aBaseGrid.m_iHeight;
 
-        m_aGridList.Add(aBaseGrid);
-
         // Run
-        for (int iArea = 0; iArea < m_aAreaList.Count; ++iArea)
+        int nArea = aBaseGrid.m_aAreaList.Count;
+        for (int iArea = 0; iArea < nArea; ++iArea)
         {
             //Debug.Log("Start with " + m_aAreaList[iArea]);
 
@@ -159,7 +162,7 @@ class Resolver
             for (int iGrid = 0; iGrid < nSolutions; ++iGrid)
             {
                 // Generate grid cases with current iArea
-                GenerateGridsFromOrigin(m_aGridList[iGrid], m_aAreaList[iArea]);
+                GenerateGridsFromOrigin(m_aGridList[iGrid], iArea);
             }
 
             // Remove old grids using nSolutions and new list sizes
@@ -171,5 +174,37 @@ class Resolver
         {
             Debug.Log(m_aGridList[i].ToString());
         }
+    }
+
+    public int CheckGridFeasbility(GridModel aBaseGrid)
+    {
+        for (int i = 0; i < m_aGridList.Count; ++i)
+        {
+            int iArea = 0;
+            int nArea = aBaseGrid.m_aAreaList.Count;
+            for (; iArea < nArea; ++iArea)
+            {
+                Area baseArea = aBaseGrid.m_aAreaList[iArea];
+                Area otherArea = m_aGridList[i].m_aAreaList[iArea];
+
+                // !IsSameArea means not the same grid
+                // startX != -1 means area has been validated
+                if (!baseArea.IsSameArea(otherArea)
+                    || (-1 != baseArea.startX && !baseArea.HasSameCompletion(otherArea)))
+                {
+                    break;
+                }
+            }
+
+            if (iArea == nArea)
+                return i;
+        }
+
+        return -1;
+    }
+
+    public Area GetCompletedArea(int solutionId, int areaId)
+    {
+        return m_aGridList[solutionId].m_aAreaList[areaId];
     }
 }

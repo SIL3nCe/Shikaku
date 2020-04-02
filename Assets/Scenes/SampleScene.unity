@@ -279,8 +279,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1907744414}
   - component: {fileID: 1907744413}
+  - component: {fileID: 1907744415}
   m_Layer: 0
-  m_Name: Grid
+  m_Name: Gameplay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -302,6 +303,7 @@ MonoBehaviour:
   height: 8
   cellPrefab: {fileID: 685935787712042749, guid: dc6bea8db67e43647bedb9b3790cf5ee,
     type: 3}
+  bGridEnded: 0
 --- !u!4 &1907744414
 Transform:
   m_ObjectHideFlags: 0
@@ -310,9 +312,21 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1907744412}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.3608378, y: -0.3902564, z: -0.59765625}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1907744415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1907744412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26d9e921c28da5547bbc64834823de3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

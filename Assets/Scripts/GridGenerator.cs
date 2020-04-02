@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using System;
+public enum EDifficulty
+{
+	easy,
+	medium,
+	hard,
+}
 
 class GridGenerator
 {
-	public enum EDifficulty
-	{
-		easy,
-		medium,
-		hard,
-	}
+
 
 	private enum EStartingPointCategory
 	{
