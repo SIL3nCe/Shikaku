@@ -10,6 +10,8 @@ public class Cell : MonoBehaviour
     public int areaId { get; set; }
     private int areaSize; // Define if is an "area origin" cell
 
+    public bool bHasMouseOnIt { get; set; }
+
     public void Initialize(int x, int y, float size, GameGrid grid)
     {
         areaId = -1;
@@ -25,14 +27,15 @@ public class Cell : MonoBehaviour
         gridObject = grid;
     }
 
-    void OnMouseDown()
+    private void OnMouseEnter()
     {
-        gridObject.BeginSelection(vCoordinates, areaId);
+        bHasMouseOnIt = true;
+        gridObject.OnCellHitByCursor(vCoordinates);
     }
 
-    void OnMouseUp()
+    private void OnMouseExit()
     {
-        gridObject.StopSelection();
+        bHasMouseOnIt = false;
     }
 
     public bool IsInArea()

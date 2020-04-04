@@ -19,10 +19,16 @@ public class GameGrid : MonoBehaviour
     private int usedCellCounter;
     private bool bGridEnded;
 
+    // Selection
     private bool bSelection;
     private Vector3 vSelectionStart;
+    
+    private Vector2Int vLastCellEntered;
     private Vector2Int vCellStart;
     private Vector2Int vCellEnd;
+
+    private List<Cell> aSelectedCells;
+    // -
 
     private Resolver resolver;
 
@@ -35,6 +41,7 @@ public class GameGrid : MonoBehaviour
 
     public void Clean()
     {
+        aSelectedCells = new List<Cell>();
         resolver = null;
         aGridModel = null;
 
@@ -93,59 +100,6 @@ public class GameGrid : MonoBehaviour
             aGridView[area.x, area.y].GetComponent<Cell>().SetAreaSize(area.value);
         }
 
-        // 10*10
-        //aGridView[0, 8].GetComponent<Cell>().SetAreaSize(9);
-        //aGridView[1, 6].GetComponent<Cell>().SetAreaSize(9);
-        //aGridView[3, 1].GetComponent<Cell>().SetAreaSize(20);
-        //aGridView[3, 4].GetComponent<Cell>().SetAreaSize(8);
-        //aGridView[3, 8].GetComponent<Cell>().SetAreaSize(6);
-        //aGridView[5, 3].GetComponent<Cell>().SetAreaSize(6);
-        //aGridView[5, 6].GetComponent<Cell>().SetAreaSize(6);
-        //aGridView[6, 0].GetComponent<Cell>().SetAreaSize(10);
-        //aGridView[8, 2].GetComponent<Cell>().SetAreaSize(6);
-        //aGridView[8, 4].GetComponent<Cell>().SetAreaSize(6);
-        //aGridView[8, 8].GetComponent<Cell>().SetAreaSize(8);
-        //aGridView[9, 6].GetComponent<Cell>().SetAreaSize(6);
-
-        //Hardcoded 5*5 grid for tests
-        //aGridView[0, 0].GetComponent<Cell>().SetAreaSize(2);
-        //aGridView[0, 2].GetComponent<Cell>().SetAreaSize(4);
-        //aGridView[0, 3].GetComponent<Cell>().SetAreaSize(2);
-        //aGridView[1, 1].GetComponent<Cell>().SetAreaSize(4);
-        //aGridView[1, 3].GetComponent<Cell>().SetAreaSize(2);
-        //aGridView[2, 0].GetComponent<Cell>().SetAreaSize(2);
-        //aGridView[2, 4].GetComponent<Cell>().SetAreaSize(3);
-        //aGridView[4, 2].GetComponent<Cell>().SetAreaSize(3);
-        //aGridView[4, 3].GetComponent<Cell>().SetAreaSize(3);
-
-        // Multiple solutions 5*5
-        //aGridView[0, 0].GetComponent<Cell>().SetAreaSize(3);
-        //aGridView[0, 3].GetComponent<Cell>().SetAreaSize(4);
-        //aGridView[1, 2].GetComponent<Cell>().SetAreaSize(2);
-        //aGridView[1, 3].GetComponent<Cell>().SetAreaSize(2);
-        //aGridView[2, 1].GetComponent<Cell>().SetAreaSize(3);
-        //aGridView[2, 3].GetComponent<Cell>().SetAreaSize(3);
-        //aGridView[3, 0].GetComponent<Cell>().SetAreaSize(2);
-        //aGridView[3, 2].GetComponent<Cell>().SetAreaSize(2);
-        //aGridView[4, 4].GetComponent<Cell>().SetAreaSize(2);
-        //aGridView[4, 3].GetComponent<Cell>().SetAreaSize(2);
-
-        //for (int iHeight = 0; iHeight < height; ++iHeight)
-        //{
-        //    for (int iWidth = 0; iWidth < width; ++iWidth)
-        //    {
-        //        int val = aGridView[iHeight, iWidth].GetComponent<Cell>().GetAreaOriginValue();
-        //
-        //        aGridModel.m_aCells[iHeight, iWidth] = val;
-        //
-        //        if (val != 0)
-        //        {
-        //            Area area = new Area(iHeight, iWidth, val);
-        //            aGridModel.m_aAreaList.Add(area);
-        //        }
-        //    }
-        //}
-
         Debug.Log("Resolving grid");
         fTimeCounter = Time.realtimeSinceStartup;
         resolver = new Resolver();
@@ -194,34 +148,72 @@ public class GameGrid : MonoBehaviour
         
         return false;
     }
-
-    void OnGUI()
+    
+    public void OnCellHitByCursor(Vector2Int vCellCoord)
     {
+        vLastCellEntered = vCellCoord;
+
         if (bSelection)
         {
-            Vector3 vCurrMousePos = Input.mousePosition;
-            vCurrMousePos.y = Camera.main.pixelHeight - vCurrMousePos.y;
+            // Check that current selected area is valid
 
-            // TODO Keep last known size if new covered cells give an invalid area
+            Vector2Int vTopLeft = new Vector2Int(Mathf.Min(vCellStart.x, vCellCoord.x), Mathf.Min(vCellStart.y, vCellCoord.y));
+            int areaWidth = Mathf.Abs(vCellStart.y - vCellCoord.y) + 1;
+            int areaHeight = Mathf.Abs(vCellStart.x - vCellCoord.x) + 1;
 
-            GUI.Box(new Rect(vSelectionStart.x, vSelectionStart.y, vCurrMousePos.x - vSelectionStart.x, vCurrMousePos.y - vSelectionStart.y), ":aaaaaaaaaaaaaaaaaaaaaaaah:");
+            int areaId = -1;
+            if (CanAreaBeSelected(vTopLeft, areaWidth, areaHeight))
+            {
+                // If selection area is valid, reset last selected cells color
+                int nCells = aSelectedCells.Count;
+                for (int i = 0; i < nCells; ++i)
+                {
+                    aSelectedCells[i].GetComponent<SpriteRenderer>().color = Color.white;
+                }
+
+                // Clear selected cells array (then don't need to compute cells to add only)
+                aSelectedCells.Clear();
+
+                // Chose color based on if area could is a valid one or not
+                Color cSelectedColor = Color.cyan;
+                if (IsAreaValid(vTopLeft, areaWidth, areaHeight, ref areaId))
+                    cSelectedColor = Color.green;
+
+                // And fill it with new selected and colored cells
+                for (int i = 0; i < areaHeight; ++i)
+                {
+                    for (int j = 0; j < areaWidth; ++j)
+                    {
+                        Cell cell = aGridView[vTopLeft.x + i, vTopLeft.y + j].GetComponent<Cell>();
+                        cell.GetComponent<SpriteRenderer>().color = cSelectedColor;
+                        aSelectedCells.Add(cell);
+                    }
+                }
+            }
         }
     }
-    
-    public void BeginSelection(Vector2Int cellCoord, int areaId)
+
+    public bool BeginSelection()
     {
         if (bGridEnded)
-            return;
+            return false;
 
-        if (areaId >= 0)
+        Cell LastEnteredCell = aGridView[vLastCellEntered.x, vLastCellEntered.y].GetComponent<Cell>();
+
+        // Cursor is no more in the cell
+        if (!LastEnteredCell.bHasMouseOnIt)
+            return false;
+
+        // Already in area, delete this area
+        int lastEnteredAreaId = LastEnteredCell.areaId;
+        if (lastEnteredAreaId >= 0)
         {
-            // Already in area, delete this area
             for (int iHeight = 0; iHeight < height; ++iHeight)
             {
                 for (int iWidth = 0; iWidth < width; ++iWidth)
                 {
                     Cell cell = aGridView[iHeight, iWidth].GetComponent<Cell>();
-                    if (cell.IsInGivenArea(areaId))
+                    if (cell.IsInGivenArea(lastEnteredAreaId))
                     {
                         aGridModel.m_aAreaList[cell.areaId].Reset();
                         cell.areaId = -1;
@@ -230,15 +222,18 @@ public class GameGrid : MonoBehaviour
                     }
                 }
             }
+
+            return false;
         }
-        else
-        {
-            // Begin selection
-            bSelection = true;
-            vCellStart = cellCoord;
-            vSelectionStart = Input.mousePosition;
-            vSelectionStart.y = Camera.main.pixelHeight - vSelectionStart.y;
-        }
+
+        // Otherwise begin selection
+        bSelection = true;
+
+        vCellStart = vLastCellEntered;
+        vSelectionStart = Input.mousePosition;
+        vSelectionStart.y = Camera.main.pixelHeight - vSelectionStart.y;
+
+        return true;
     }
 
     public void StopSelection()
@@ -246,25 +241,7 @@ public class GameGrid : MonoBehaviour
         if (bSelection)
         {
             bSelection = false;
-
-            Vector3 vCurrMousePos = Input.mousePosition;
-            vCurrMousePos.z = Camera.main.farClipPlane; //distance of the plane from the camera
-            vCurrMousePos = Camera.main.ScreenToWorldPoint(vCurrMousePos);
-
-            //TODO could be computed without loops, with cell size and coordinates
-            for (int iHeight = 0; iHeight < height; ++iHeight)
-            {
-                for (int iWidth = 0; iWidth < width; ++iWidth)
-                {
-                    if (RectTransformUtility.RectangleContainsScreenPoint(aGridView[iHeight, iWidth].GetComponent<RectTransform>(), vCurrMousePos))
-                    {
-                        vCellEnd.x = iHeight;
-                        vCellEnd.y = iWidth;
-                        break;
-                    }
-                }
-            }
-
+            vCellEnd = vLastCellEntered;
             OnSelectionEnded();
         }
     }
@@ -275,20 +252,17 @@ public class GameGrid : MonoBehaviour
         int areaWidth = Mathf.Abs(vCellStart.y - vCellEnd.y) + 1;
         int areaHeight = Mathf.Abs(vCellStart.x - vCellEnd.x) + 1;
 
+        int nCells = aSelectedCells.Count;
+
         int areaId = -1;
         if (IsAreaValid(vTopLeft, areaWidth, areaHeight, ref areaId))
         {
             Color areaColor = UnityEngine.Random.ColorHSV();
-            // TODO draw a rectangle around cells vs change cell color ?
-            for (int i = 0; i < areaHeight; ++i)
+            for (int i = 0; i < nCells; ++i)
             {
-                for (int j = 0; j < areaWidth; ++j)
-                {
-                    Cell cell = aGridView[vTopLeft.x + i, vTopLeft.y + j].GetComponent<Cell>();
-                    cell.GetComponent<SpriteRenderer>().color = areaColor;
-                    cell.areaId = areaId;
-                    usedCellCounter--;
-                }
+                aSelectedCells[i].GetComponent<SpriteRenderer>().color = areaColor;
+                aSelectedCells[i].areaId = areaId;
+                usedCellCounter--;
             }
 
             aGridModel.m_aAreaList[areaId].startX = vTopLeft.x;
@@ -300,7 +274,18 @@ public class GameGrid : MonoBehaviour
             {
                 OnGridEnded();
             }
+
+            goto Finish;
         }
+
+        // Invalid area, clean selected cells
+        for (int i = 0; i < nCells; ++i)
+        {
+            aSelectedCells[i].GetComponent<SpriteRenderer>().color = Color.white;
+        }
+
+    Finish:
+        aSelectedCells.Clear();
     }
 
     private void OnGridEnded()
@@ -325,7 +310,7 @@ public class GameGrid : MonoBehaviour
 
                 Cell cell = aGridView[cellX, cellY].GetComponent<Cell>();
 
-                // A cell in area is already in another area
+                // A cell in given area already belong to an area
                 if (cell.IsInArea())
                     return false;
 
@@ -345,5 +330,28 @@ public class GameGrid : MonoBehaviour
         }
 
         return nOrigin != 0;
+    }
+
+
+    private bool CanAreaBeSelected(Vector2Int vTopLeft, int areaWidth, int areaHeight)
+    {
+        int nCells = areaWidth * areaHeight;
+
+        for (int i = 0; i < areaHeight; ++i)
+        {
+            int cellX = vTopLeft.x + i;
+            for (int j = 0; j < areaWidth; ++j)
+            {
+                int cellY = vTopLeft.y + j;
+
+                Cell cell = aGridView[cellX, cellY].GetComponent<Cell>();
+
+                // A cell in given area already belong to an area
+                if (cell.IsInArea())
+                    return false;
+            }
+        }
+
+        return true;
     }
 }
