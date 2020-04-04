@@ -139,6 +139,18 @@ public class GameGrid : MonoBehaviour
                     vCellEnd.x = vCellStart.x + (area.height - 1);
                     vCellEnd.y = vCellStart.y + (area.width - 1);
 
+                    // Fill selected cells array used to create area when selection end
+                    for (int i = 0; i < area.height; ++i)
+                    {
+                        for (int j = 0; j < area.width; ++j)
+                        {
+                            Cell cell = aGridView[vCellStart.x + i, vCellStart.y + j].GetComponent<Cell>();
+                            //cell.GetComponent<SpriteRenderer>().color = Color.yellow;
+                            aSelectedCells.Add(cell);
+                        }
+                    }
+
+                    //TODO Just set color as hint or create area ?
                     OnSelectionEnded();
 
                     return true;
