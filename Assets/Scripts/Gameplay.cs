@@ -23,6 +23,7 @@ public class Gameplay : MonoBehaviour
         gameGrid.Generate(Difficulty);
 
         SelectionRectangle.enabled = false;
+        SelectionRectangle.transform.SetAsLastSibling(); // Draw it last, on top of all gui
         bSelection = false;
 
         fSelecRectInvScale = 1.0f / fSelecRectScale;
@@ -77,7 +78,7 @@ public class Gameplay : MonoBehaviour
                 float fWidth = (vMouseStart.x - vCurrentMouseLoc.x) * fSelecRectInvScale;
                 float fHeight = (vMouseStart.y - vCurrentMouseLoc.y) * fSelecRectInvScale;
 
-                SelectionRectangle.transform.localScale = new Vector3(fWidth > 0.0f ? -fSelecRectScale : fSelecRectScale, fHeight < 0.0f ? fSelecRectScale : -fSelecRectScale, 1.0f);
+                SelectionRectangle.transform.localScale = new Vector3(fWidth < 0.0f ? fSelecRectScale : -fSelecRectScale, fHeight < 0.0f ? fSelecRectScale : -fSelecRectScale, 1.0f);
                 
                 SelectionRectangle.rectTransform.sizeDelta = new Vector2(Mathf.Abs(fWidth), Mathf.Abs(fHeight));
             }

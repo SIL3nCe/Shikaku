@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.UI;
 
 public class GameGrid : MonoBehaviour
 {
@@ -30,13 +31,22 @@ public class GameGrid : MonoBehaviour
     private List<Cell> aSelectedCells;
     // -
 
+    // Selected area visual
+    public Sprite AreaSelectionRectangle;
+    public GameObject ParentCanvasForImages;
+
+    private List<GameObject> aValidatedAreas;
+
+
     private Resolver resolver;
 
     void Start()
     {
-		//
-		// Tests
-		//GridGenerator.TestValidityNeighbourSplitting();
+        //
+        // Tests
+        //GridGenerator.TestValidityNeighbourSplitting();
+
+        aValidatedAreas = new List<GameObject>();
     }
 
     public void Clean()
@@ -44,6 +54,13 @@ public class GameGrid : MonoBehaviour
         aSelectedCells = new List<Cell>();
         resolver = null;
         aGridModel = null;
+
+        int nAreas = aValidatedAreas.Count;
+        for (int i = 0; i < nAreas; ++i)
+        {
+            Destroy(aValidatedAreas[i]);
+        }
+        aValidatedAreas = new List<GameObject>();
 
         for (int i = 0; i < height; ++i)
         {
@@ -98,6 +115,21 @@ public class GameGrid : MonoBehaviour
         {
             Area area = aGridModel.m_aAreaList[i];
             aGridView[area.x, area.y].GetComponent<Cell>().SetAreaSize(area.value);
+            
+            // Create Image rectangle for each origin
+            GameObject NewObj = new GameObject();
+            Image NewImage = NewObj.AddComponent<Image>();
+            NewImage.sprite = AreaSelectionRectangle;
+            NewImage.rectTransform.pivot = new Vector2(0.0f, 0.0f);
+            NewImage.enabled = false; // Hide it for now
+            NewImage.transform.localScale = new Vector3(8.0f, -8.0f, 1.0f); // Negative on height because we always drawing from top left
+            NewImage.type = Image.Type.Sliced;
+            NewImage.fillCenter = false;
+
+            NewObj.GetComponent<RectTransform>().SetParent(ParentCanvasForImages.transform); //Assign the newly created Image GameObject as a Child of the Parent Panel.
+            NewObj.SetActive(true);
+
+            aValidatedAreas.Add(NewObj);
         }
 
         Debug.Log("Resolving grid");
@@ -235,6 +267,8 @@ public class GameGrid : MonoBehaviour
                 }
             }
 
+            aValidatedAreas[lastEnteredAreaId].GetComponent<Image>().enabled = false;
+
             return false;
         }
 
@@ -261,26 +295,37 @@ public class GameGrid : MonoBehaviour
     private void OnSelectionEnded()
     {
         Vector2Int vTopLeft = new Vector2Int(Mathf.Min(vCellStart.x, vCellEnd.x), Mathf.Min(vCellStart.y, vCellEnd.y));
-        int areaWidth = Mathf.Abs(vCellStart.y - vCellEnd.y) + 1;
-        int areaHeight = Mathf.Abs(vCellStart.x - vCellEnd.x) + 1;
+        int areaWidth = vCellStart.y - vCellEnd.y;
+        int areaHeight = vCellStart.x - vCellEnd.x;
+        int areaWidthAbs = Mathf.Abs(vCellStart.y - vCellEnd.y) + 1;
+        int areaHeightAbs = Mathf.Abs(vCellStart.x - vCellEnd.x) + 1;
 
         int nCells = aSelectedCells.Count;
 
         int areaId = -1;
-        if (IsAreaValid(vTopLeft, areaWidth, areaHeight, ref areaId))
+        if (IsAreaValid(vTopLeft, areaWidthAbs, areaHeightAbs, ref areaId))
         {
             Color areaColor = UnityEngine.Random.ColorHSV();
             for (int i = 0; i < nCells; ++i)
             {
-                aSelectedCells[i].GetComponent<SpriteRenderer>().color = areaColor;
+                aSelectedCells[i].GetComponent<SpriteRenderer>().color = Color.white;
                 aSelectedCells[i].areaId = areaId;
                 usedCellCounter--;
             }
 
+            Image image = aValidatedAreas[areaId].GetComponent<Image>();
+            Vector3 vCellLocation = aGridView[vTopLeft.x, vTopLeft.y].transform.position;
+            vCellLocation.x -= 0.45f;
+            vCellLocation.y += 0.45f;
+            image.transform.position = Camera.main.WorldToScreenPoint(vCellLocation);
+            image.rectTransform.sizeDelta = new Vector2((areaWidthAbs * 8.7f) + (1.6f * (areaWidthAbs - 1)), (areaHeightAbs * 8.7f) + (1.6f * (areaHeightAbs - 1))); // Shitty hardcoded numbers
+            image.color = Color.black;
+            image.enabled = true;
+
             aGridModel.m_aAreaList[areaId].startX = vTopLeft.x;
             aGridModel.m_aAreaList[areaId].startY = vTopLeft.y;
-            aGridModel.m_aAreaList[areaId].width = areaWidth;
-            aGridModel.m_aAreaList[areaId].height = areaHeight;
+            aGridModel.m_aAreaList[areaId].width = areaWidthAbs;
+            aGridModel.m_aAreaList[areaId].height = areaHeightAbs;
 
             if (usedCellCounter == 0)
             {

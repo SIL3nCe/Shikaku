@@ -280,7 +280,7 @@ GameObject:
   - component: {fileID: 1739436461}
   - component: {fileID: 1739436463}
   - component: {fileID: 1739436462}
-  m_Layer: 5
+  m_Layer: 8
   m_Name: SelectionRect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -319,7 +319,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.1517027, g: 0.5471698, b: 0.13163047, a: 1}
+  m_Color: {r: 1, g: 0.34328356, b: 0, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -374,6 +374,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cellPrefab: {fileID: 685935787712042749, guid: dc6bea8db67e43647bedb9b3790cf5ee,
     type: 3}
+  AreaSelectionRectangle: {fileID: 21300000, guid: f97641200917621438bd1da06178ba85,
+    type: 3}
+  ParentCanvasForImages: {fileID: 2119115070}
 --- !u!4 &1907744414
 Transform:
   m_ObjectHideFlags: 0
@@ -402,7 +405,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Difficulty: 0
   SelectionRectangle: {fileID: 1739436462}
-  fSelecRectScale: 10.6
+  fSelecRectScale: 5
 --- !u!1 &2119115070
 GameObject:
   m_ObjectHideFlags: 0
