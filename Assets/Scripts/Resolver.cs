@@ -156,9 +156,17 @@ class Resolver
         int nArea = aBaseGrid.m_aAreaList.Count;
         for (int iArea = 0; iArea < nArea; ++iArea)
         {
-            //Debug.Log("Start with " + m_aAreaList[iArea]);
-
             int nSolutions = m_aGridList.Count;
+
+            Debug.Log("Start with " + aBaseGrid.m_aAreaList[iArea] + " (" + iArea + "), solutions: " + nSolutions);
+
+            if (nSolutions > 200000)
+            {
+                Debug.Log("Aborted resolver, more than 200k solutions");
+                m_aGridList.Clear();
+                break;
+            }
+
             for (int iGrid = 0; iGrid < nSolutions; ++iGrid)
             {
                 // Generate grid cases with current iArea
