@@ -10,7 +10,9 @@ class Resolver
     private int m_iWidth;
     private int m_iHeight;
 
-    bool IsValidArea(int[,] aGrid, Area area, int x, int y, int width, int height)
+    List<int> m_aDivisors;
+
+    bool IsValidArea(in int[,] aGrid, in Area area, int x, int y, int width, int height)
     {
         // Height (line) = i (x), Width (column) = j (y)
 
@@ -36,17 +38,15 @@ class Resolver
         return true;
     }
 
-    void AddValidArea(GridModel aGrid, int areaId, int width, int height)
+    void AddValidArea(int iGrid, int areaId, int width, int height)
     {
         // Height (line) = i (x), Width (column) = j (y)
 
-        //Display(aGrid);
+        //Display(m_aGridList[iGrid]);
         //Debug.Log("test with area (x,y) " + height + " " + width);
 
-        Area area = aGrid.m_aAreaList[areaId];
-
-        int startX = area.x - (height - 1);
-        int startY = area.y - (width - 1);
+        int startX = m_aGridList[iGrid].m_aAreaList[areaId].x - (height - 1);
+        int startY = m_aGridList[iGrid].m_aAreaList[areaId].y - (width - 1);
 
         //Debug.Log("area x : y " + area.x + " " + area.y);
         //Debug.Log("start x : y " + startX + " " + startY);
@@ -57,12 +57,12 @@ class Resolver
             {
                 //Debug.Log("Try top left: " + currX + " " + currY);
                 //Debug.Log(aGrid.ToString());
-                if (IsValidArea(aGrid.m_aCells, area, currX, currY, width, height))
+                if (IsValidArea(m_aGridList[iGrid].m_aCells, m_aGridList[iGrid].m_aAreaList[areaId], currX, currY, width, height))
                 {
                     //Debug.Log("Found valid area");
 
                     // Copy grid
-                    GridModel newGrid = aGrid.DeepCopy();
+                    GridModel newGrid = m_aGridList[iGrid].DeepCopy();
 
                     // Update new grid cells for valid area
                     for (int k = currX; k < currX + height; ++k)
@@ -70,7 +70,7 @@ class Resolver
                         for (int l = currY; l < currY + width; ++l)
                         {
                             //Debug.Log(k + " " + l + " " + (height - 1) + " " + (width - 1));
-                            newGrid.m_aCells[k, l] = area.value;
+                            newGrid.m_aCells[k, l] = m_aGridList[iGrid].m_aAreaList[areaId].value;
                         }
                     }
 
@@ -88,17 +88,17 @@ class Resolver
         }
     }
 
-    void AddAllValidAreas(GridModel aGrid, int areaId, int sideLength1, int sideLength2)
+    void AddAllValidAreas(int iGrid, int areaId, int sideLength1, int sideLength2)
     {
-        AddValidArea(aGrid, areaId, sideLength1, sideLength2);
+        AddValidArea(iGrid, areaId, sideLength1, sideLength2);
 
         if (sideLength1 != sideLength2)
         {
-            AddValidArea(aGrid, areaId, sideLength2, sideLength1);
+            AddValidArea(iGrid, areaId, sideLength2, sideLength1);
         }
     }
 
-    void GenerateGridsFromOrigin(GridModel aGrid, int areaId)
+    void GenerateGridsFromOrigin(int iGrid, int areaId)
     {
         List<Tuple<int, int>> aTestedSizes = new List<Tuple<int, int>>();
         
@@ -114,44 +114,55 @@ class Resolver
             return false;
         };
 
-        List<int> aDivisors = new List<int>{ 2, 3, 5, 7 };
         int currentMultiple = 1;
-        int iLastMultiple = aGrid.m_aAreaList[areaId].value;
+        int iLastMultiple = m_aGridList[iGrid].m_aAreaList[areaId].value;
         while (true)
         { 
             int iDivisorIndex = 0;
-            for (; iDivisorIndex < 4; ++iDivisorIndex)
+            for (; iDivisorIndex < m_aDivisors.Count; ++iDivisorIndex)
             {
-                if (0 == iLastMultiple % aDivisors[iDivisorIndex])
+                if (0 == iLastMultiple % m_aDivisors[iDivisorIndex])
                 {
-                    iLastMultiple = iLastMultiple / aDivisors[iDivisorIndex];
-                    currentMultiple *= aDivisors[iDivisorIndex];
+                    iLastMultiple /= m_aDivisors[iDivisorIndex];
+                    currentMultiple *= m_aDivisors[iDivisorIndex];
 
                     // Check if tuple has already been tested. Needed for case like 8 (> 4,2 > 2,4)
                     Tuple<int, int> tuple = new Tuple<int, int>(iLastMultiple, currentMultiple);
                     if (AlreadyTested(tuple))
                         break;
                     
-                    AddAllValidAreas(aGrid, areaId, iLastMultiple, currentMultiple);
+                    AddAllValidAreas(iGrid, areaId, iLastMultiple, currentMultiple);
 
                     aTestedSizes.Add(tuple);
 
                     break;
                 }
             }
-            if (iDivisorIndex == 4)
+
+            if (iDivisorIndex == m_aDivisors.Count)
+            {
+                // Handle prime numbers not in divisors list
+                if (iLastMultiple != 1)
+                {
+                    AddAllValidAreas(iGrid, areaId, iLastMultiple, currentMultiple);
+                }
+
                 break;
+            }
+
         }
     }
 
-    public void Resolve(GridModel aBaseGrid)
+    public void Resolve(in GridModel aBaseGrid)
     {
         m_aGridList = new List<GridModel>();
         m_aGridList.Add(aBaseGrid);
 
         m_iWidth = aBaseGrid.m_iWidth;
         m_iHeight = aBaseGrid.m_iHeight;
-
+        
+        m_aDivisors = new List<int> { 2, 3, 5};
+        
         // Run
         int nArea = aBaseGrid.m_aAreaList.Count;
         for (int iArea = 0; iArea < nArea; ++iArea)
@@ -160,9 +171,9 @@ class Resolver
 
             Debug.Log("Start with " + aBaseGrid.m_aAreaList[iArea] + " (" + iArea + "), solutions: " + nSolutions);
 
-            if (nSolutions > 200000)
+            if (nSolutions > 100000)
             {
-                Debug.Log("Aborted resolver, more than 200k solutions");
+                Debug.Log("Aborted resolver, more than 100k solutions");
                 m_aGridList.Clear();
                 break;
             }
@@ -170,7 +181,7 @@ class Resolver
             for (int iGrid = 0; iGrid < nSolutions; ++iGrid)
             {
                 // Generate grid cases with current iArea
-                GenerateGridsFromOrigin(m_aGridList[iGrid], iArea);
+                GenerateGridsFromOrigin(iGrid, iArea);
             }
 
             // Remove old grids using nSolutions and new list sizes
