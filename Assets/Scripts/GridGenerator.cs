@@ -95,25 +95,27 @@ class GridGenerator
 
 		int iStartingPointsCount = (int)(Math.Sqrt((double)(iWidth * iHeight)) * 2.0f);
 
-		int iGenerationMaxTries = 1000;
+		int iGenerationMaxTries = 10;
 		int iGenerationTryIndex = 0;
 		bool bGenerationSuccess = false;
-		while (!bGenerationSuccess && iGenerationTryIndex < iGenerationMaxTries)
+		while (!bGenerationSuccess && iGenerationTryIndex++ < iGenerationMaxTries)
 		{
-			bGenerationSuccess = Generate(ref aGrid, iStartingPointsCount);
+			bGenerationSuccess = Generate(ref aGrid);
 			if(bGenerationSuccess)
 			{
 				Log(aGrid.ToString());
 			}
-
-			++iGenerationTryIndex;
+			else
+			{
+				Assert.IsTrue(false);
+			}
 		}
 
 
 		return (bGenerationSuccess, aGrid);
 	}
 
-	private bool Generate(ref GridModel aGridOut, int iStartingPointsCount)
+	private bool Generate(ref GridModel aGridOut)
 	{
 		//
 		// Setup
@@ -124,33 +126,21 @@ class GridGenerator
 		m_aRegisteredVisitedCellsID = new int[m_size[AXIS_Y], m_size[AXIS_X]];
 
 		//
-		// Iterate for all starting points
+		// Iterate 'width*height' times to fill the grid with starting points
 		System.Random rnd = new System.Random();
 		int iPlacingStepTriesCount = m_size[AXIS_X] * m_size[AXIS_Y];
 		int iOccupyingBlock = 0;
-		for (int iStartingPointIndex = 0; iStartingPointIndex < iStartingPointsCount; ++iStartingPointIndex)
+		int iStartingPointIndex = 0;
+		while (!IsGridComplete() && iStartingPointIndex++ < iPlacingStepTriesCount)
 		{
-			int iRandomPosX = -1;
-			int iRandomPosY = -1;
-			int iPlacingStepTryIndex = -1;
+			int iRandomPosX = rnd.Next(0, m_size[AXIS_X]);
+			int iRandomPosY = rnd.Next(0, m_size[AXIS_Y]);
 
 			//
 			// Check for occupation
+			if(IsPositionOccupied(iRandomPosX, iRandomPosY, ref iOccupyingBlock))
 			{
-				while (IsPositionOccupied(iRandomPosX, iRandomPosY, ref iOccupyingBlock) && iPlacingStepTryIndex < iPlacingStepTriesCount)
-				{
-					iRandomPosX = rnd.Next(0, m_size[AXIS_X]);
-					iRandomPosY = rnd.Next(0, m_size[AXIS_Y]);
-
-					++iPlacingStepTryIndex;
-				}
-
-				if (iPlacingStepTryIndex >= iPlacingStepTriesCount)
-				{
-					//
-					// Could not place starting point, max tries limit reached
-					return false;
-				}
+				continue;
 			}
 
 			//
@@ -163,31 +153,46 @@ class GridGenerator
 				// Update map
 				UpdateGridsWithBlock(block);
 
-				Display(m_aRegisteredVisitedCells);
-			}
-			else
-			{
-				Log("was not able to grow block from position : (" + newOrigin[AXIS_Y].ToString() + "/" + newOrigin[AXIS_X].ToString() + ")");
 			}
 		}
+
+		Log("After adding initial starting points :");
+		Display(m_aRegisteredVisitedCellsID);
 
 		//
 		// Grid validity
 		int iValidityTry = 0;
-		int iValidityTriesThreshold = 25;
+		int iValidityTriesThreshold = (int)(m_size[AXIS_X] * m_size[AXIS_Y] * 0.5f);
 		while (iValidityTry++ < iValidityTriesThreshold && !ResolveGridValidity()) { };
 		if(iValidityTry >= iValidityTriesThreshold)
 		{
 			Log("Max validity tries occured");
 		}
 
+		if (!IsGridComplete())
+		{
+			Log("----------> grid not complete !!!");
+			Assert.IsTrue(false);
+			return false;
+		}
+
+		if (!IsGridValid())
+		{
+			Log("----------> grid not valid !!!");
+			Assert.IsTrue(false);
+			return false;
+		}
+
 		//
 		// Fill generated grid
 		foreach (ShikakuBlock block in m_aShikakuBlocks)
 		{
-			// TODO Set and store area origins based on difficulty instead of using top left
-			aGridOut.m_aAreaList.Add(new Area(block.pos[AXIS_X], block.pos[AXIS_Y], block.iAreaValue));
-			aGridOut.m_aCells[block.pos[AXIS_X], block.pos[AXIS_Y]] = block.iAreaValue;
+			if(block.iAreaValue > 0)
+			{
+				// TODO Set and store area origins based on difficulty instead of using top left
+				aGridOut.m_aAreaList.Add(new Area(block.pos[AXIS_X], block.pos[AXIS_Y], block.iAreaValue));
+				aGridOut.m_aCells[block.pos[AXIS_Y], block.pos[AXIS_X]] = block.iAreaValue;
+			}
 		}
 
 		return true;
@@ -397,7 +402,7 @@ class GridGenerator
 			for (int iWidth = 0; iWidth < m_size[AXIS_X]; ++iWidth)
 			{
 				strGrid += aGrid[iHeight, iWidth];
-				strGrid += " ";
+				strGrid += "\t";
 			}
 			strGrid += System.Environment.NewLine;
 		}
@@ -863,8 +868,8 @@ class GridGenerator
 		}
 		m_aShikakuBlocks.Add(block);
 
-		Log("before updating (adding block : "+block+") :");
-		Display(m_aRegisteredVisitedCellsID);
+		//Log("before updating (adding block : "+block+") :");
+		//Display(m_aRegisteredVisitedCellsID);
 
 		int iMaxIndexHeight = block.pos[AXIS_Y] + block.size[AXIS_Y];
 		int iMaxIndexWidth = block.pos[AXIS_X] + block.size[AXIS_X];
@@ -876,8 +881,13 @@ class GridGenerator
 				m_aRegisteredVisitedCellsID[iColumnIndex, iRowIndex] = m_aShikakuBlocks.Count;
 			}
 		}
-		Log("after updating :");
-		Display(m_aRegisteredVisitedCellsID);
+		//Log("after updating :");
+		//Display(m_aRegisteredVisitedCellsID);
+
+		if (!IsGridValid())
+		{
+			Assert.IsTrue(false);
+		}
 	}
 
 	private void UpdateGridsWithMergedBlock(ShikakuBlock block, int iBlockIndextoReplace)
@@ -906,6 +916,11 @@ class GridGenerator
 		}
 		Log("after merging:");
 		Display(m_aRegisteredVisitedCellsID);
+
+		if(!IsGridValid())
+		{
+			Assert.IsTrue(false);
+		}
 	}
 
 	public static void TestValidityNeighbourSplitting()
@@ -1000,6 +1015,9 @@ class GridGenerator
 					m_aRegisteredVisitedCellsID[iNeighbourhoodColumnIndex, iNeighbourhoodRowIndex] = 0;
 				}
 			}
+			block.iAreaValue = 0;
+			block.size[AXIS_X] = 0;
+			block.size[AXIS_Y] = 0;
 		}
 
 		Log("Removed neighbours  :"+ aBlockIDs);
@@ -1008,10 +1026,65 @@ class GridGenerator
 		return true;
 	}
 
+	private bool IsGridValid()
+	{
+		//
+		// Iterate inside the neighbourhood rectangle 
+		for (int iBlockIDIndex = 0; iBlockIDIndex < m_aShikakuBlocks.Count; ++iBlockIDIndex)
+		{
+			ShikakuBlock block = m_aShikakuBlocks[iBlockIDIndex];
+			if(block.iAreaValue == 0)
+			{
+				continue;
+			}
+
+			int iMaxHeightIndex = block.pos[AXIS_Y] + block.size[AXIS_Y] - 1;
+			int iMaxWidthIndex = block.pos[AXIS_X] + block.size[AXIS_X] - 1;
+			for (int iNeighbourhoodColumnIndex = block.pos[AXIS_Y]; iNeighbourhoodColumnIndex <= iMaxHeightIndex; ++iNeighbourhoodColumnIndex)
+			{
+				for (int iNeighbourhoodRowIndex = block.pos[AXIS_X]; iNeighbourhoodRowIndex <= iMaxWidthIndex; ++iNeighbourhoodRowIndex)
+				{
+					if(		m_aRegisteredVisitedCells[iNeighbourhoodColumnIndex,iNeighbourhoodRowIndex] != block.iAreaValue 
+						||	m_aRegisteredVisitedCellsID[iNeighbourhoodColumnIndex,iNeighbourhoodRowIndex] != iBlockIDIndex+1)
+					{
+						return false;
+					}
+				}
+			}
+		}
+
+		//Log("Grid valid !");
+
+		return true;
+	}
+
+
+	private bool IsGridComplete()
+	{
+		//
+		// Iterate inside the neighbourhood rectangle 
+
+		for (int iRow = 0; iRow < m_size[AXIS_Y]; ++iRow)
+		{
+			for (int iColumn = 0; iColumn < m_size[AXIS_X]; ++iColumn)
+			{
+				if (	m_aRegisteredVisitedCells[iRow, iColumn] == 0
+					||	m_aRegisteredVisitedCellsID[iRow, iColumn] == 0)
+				{
+					return false;
+				}
+			}
+		}
+
+		Log("Grid complete !");
+
+		return true;
+	}
+
 	private void Log(string str)
 	{
 		//Console.WriteLine(str);
-		//Debug.Log(str);
-		//System.Diagnostics.Debug.WriteLine(str);
+		Debug.Log(str);
+		System.Diagnostics.Debug.WriteLine(str);
 	}
 }
