@@ -12,7 +12,7 @@ public class Gameplay : MonoBehaviour
     public Image SelectionRectangle;
     [Range(1, 50)]
     public float fSelecRectScale;
-    private float fSelecRectInvScale;
+    private float m_fCanvasScaleInvert;
 
     private bool bSelection;
     private Vector2 vMouseStart;
@@ -24,9 +24,9 @@ public class Gameplay : MonoBehaviour
 
         SelectionRectangle.enabled = false;
         SelectionRectangle.transform.SetAsLastSibling(); // Draw it last, on top of all gui
-		fSelecRectInvScale = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
-		SelectionRectangle.transform.localScale = new Vector3(fSelecRectInvScale, fSelecRectInvScale, fSelecRectInvScale);
-		SelectionRectangle.pixelsPerUnitMultiplier = fSelecRectInvScale / 2;
+		m_fCanvasScaleInvert = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
+		SelectionRectangle.transform.localScale = new Vector3(m_fCanvasScaleInvert, m_fCanvasScaleInvert, m_fCanvasScaleInvert);
+		SelectionRectangle.pixelsPerUnitMultiplier = m_fCanvasScaleInvert / 2;
 
 		bSelection = false;
     }
@@ -80,7 +80,7 @@ public class Gameplay : MonoBehaviour
 
 				float fWidth = (vMouseStart.x - vCurrentMouseLoc.x);
 				float fHeight = (vMouseStart.y - vCurrentMouseLoc.y);
-				Vector3 vScale = new Vector3(fWidth < 0.0f ? fSelecRectInvScale : -fSelecRectInvScale, fHeight < 0.0f ? fSelecRectInvScale : -fSelecRectInvScale, fSelecRectInvScale);
+				Vector3 vScale = new Vector3(fWidth < 0.0f ? m_fCanvasScaleInvert : -m_fCanvasScaleInvert, fHeight < 0.0f ? m_fCanvasScaleInvert : -m_fCanvasScaleInvert, m_fCanvasScaleInvert);
 				SelectionRectangle.transform.localScale = vScale;
 				SelectionRectangle.rectTransform.sizeDelta = new Vector2(Mathf.Abs(fWidth), Mathf.Abs(fHeight));
             }
@@ -93,7 +93,7 @@ public class Gameplay : MonoBehaviour
             gameGrid.StopSelection();
             SelectionRectangle.enabled = false;
             SelectionRectangle.rectTransform.sizeDelta = new Vector2(0.0f, 0.0f);
-			SelectionRectangle.transform.localScale = new Vector3(fSelecRectInvScale, fSelecRectInvScale, fSelecRectInvScale);
+			SelectionRectangle.transform.localScale = new Vector3(m_fCanvasScaleInvert, m_fCanvasScaleInvert, m_fCanvasScaleInvert);
         }
     }
 }
