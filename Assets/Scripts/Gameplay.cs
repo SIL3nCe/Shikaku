@@ -24,9 +24,11 @@ public class Gameplay : MonoBehaviour
 
         SelectionRectangle.enabled = false;
         SelectionRectangle.transform.SetAsLastSibling(); // Draw it last, on top of all gui
-        bSelection = false;
+		fSelecRectInvScale = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
+		SelectionRectangle.transform.localScale = new Vector3(fSelecRectInvScale, fSelecRectInvScale, fSelecRectInvScale);
+		SelectionRectangle.pixelsPerUnitMultiplier = fSelecRectInvScale / 2;
 
-        fSelecRectInvScale = 1.0f / fSelecRectScale;
+		bSelection = false;
     }
 
     void Update()
@@ -60,27 +62,27 @@ public class Gameplay : MonoBehaviour
 
         if (Input.GetMouseButton(0))
         {
+			SelectionRectangle.transform.SetAsLastSibling(); // Draw it last, on top of all gui
             if (!bSelection)
-            {
+			{
                 // Check game grid can begin selection before
                 if (gameGrid.BeginSelection())
                 {
-                    vMouseStart = Input.mousePosition;
-                    SelectionRectangle.transform.position = vMouseStart;
+                    vMouseStart = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                    SelectionRectangle.rectTransform.anchoredPosition3D = vMouseStart * SelectionRectangle.rectTransform.localScale;
                     SelectionRectangle.enabled = true;
                     bSelection = true;
                 }
             }
             else
             {
-                Vector2 vCurrentMouseLoc = Input.mousePosition;
+                Vector2 vCurrentMouseLoc = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-                float fWidth = (vMouseStart.x - vCurrentMouseLoc.x) * fSelecRectInvScale;
-                float fHeight = (vMouseStart.y - vCurrentMouseLoc.y) * fSelecRectInvScale;
-
-                SelectionRectangle.transform.localScale = new Vector3(fWidth < 0.0f ? fSelecRectScale : -fSelecRectScale, fHeight < 0.0f ? fSelecRectScale : -fSelecRectScale, 1.0f);
-                
-                SelectionRectangle.rectTransform.sizeDelta = new Vector2(Mathf.Abs(fWidth), Mathf.Abs(fHeight));
+				float fWidth = (vMouseStart.x - vCurrentMouseLoc.x);
+				float fHeight = (vMouseStart.y - vCurrentMouseLoc.y);
+				Vector3 vScale = new Vector3(fWidth < 0.0f ? fSelecRectInvScale : -fSelecRectInvScale, fHeight < 0.0f ? fSelecRectInvScale : -fSelecRectInvScale, fSelecRectInvScale);
+				SelectionRectangle.transform.localScale = vScale;
+				SelectionRectangle.rectTransform.sizeDelta = new Vector2(Mathf.Abs(fWidth), Mathf.Abs(fHeight));
             }
         }
         else if (bSelection)
@@ -91,7 +93,7 @@ public class Gameplay : MonoBehaviour
             gameGrid.StopSelection();
             SelectionRectangle.enabled = false;
             SelectionRectangle.rectTransform.sizeDelta = new Vector2(0.0f, 0.0f);
-            SelectionRectangle.transform.localScale = new Vector3(0.0f, 0.0f, 0.0f);
+			SelectionRectangle.transform.localScale = new Vector3(fSelecRectInvScale, fSelecRectInvScale, fSelecRectInvScale);
         }
     }
 }

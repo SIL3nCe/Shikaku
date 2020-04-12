@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.UI;
@@ -101,10 +100,15 @@ public class GameGrid : MonoBehaviour
         {
             for (int iWidth = 0; iWidth < width; ++iWidth)
             {
-                aGridView[iHeight, iWidth] = Instantiate(cellPrefab, new Vector3(x, y, 0), Quaternion.identity);
+				float fScale = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
+
+                aGridView[iHeight, iWidth] = Instantiate(cellPrefab, GameObject.Find("Canvas").transform);
+				aGridView[iHeight, iWidth].GetComponent<Cell>().transform.localScale = new Vector3(fScale, fScale, fScale);
+				aGridView[iHeight, iWidth].GetComponent<RectTransform>().anchoredPosition3D = new Vector3(x * fScale, y * fScale, 0.0f);
                 aGridView[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, 1.0f, this);
-                x += cellSize + 0.08f;
-                usedCellCounter++;
+				aGridView[iHeight, iWidth].GetComponent<Cell>().transform.localScale = new Vector3(fScale, fScale, fScale);
+				x += cellSize + 0.08f;
+				usedCellCounter++;
             }
             x = fTopLeftX;
             y -= cellSize + 0.08f;
@@ -120,13 +124,15 @@ public class GameGrid : MonoBehaviour
             GameObject NewObj = new GameObject();
             Image NewImage = NewObj.AddComponent<Image>();
             NewImage.sprite = AreaSelectionRectangle;
-            NewImage.rectTransform.pivot = new Vector2(0.0f, 0.0f);
+            NewImage.rectTransform.pivot = new Vector2(0.0f, 1.0f);
             NewImage.enabled = false; // Hide it for now
-            NewImage.transform.localScale = new Vector3(8.0f, -8.0f, 1.0f); // Negative on height because we always drawing from top left
+            //NewImage.transform.localScale = new Vector3(8.0f, -8.0f, 1.0f); // Negative on height because we always drawing from top left
             NewImage.type = Image.Type.Sliced;
             NewImage.fillCenter = false;
+			float fScale = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
+			NewImage.pixelsPerUnitMultiplier = fScale * 0.5f;
 
-            NewObj.GetComponent<RectTransform>().SetParent(ParentCanvasForImages.transform); //Assign the newly created Image GameObject as a Child of the Parent Panel.
+			NewObj.GetComponent<RectTransform>().SetParent(ParentCanvasForImages.transform); //Assign the newly created Image GameObject as a Child of the Parent Panel.
             NewObj.SetActive(true);
 
             aValidatedAreas.Add(NewObj);
@@ -293,17 +299,39 @@ public class GameGrid : MonoBehaviour
     }
 
     private void OnSelectionEnded()
-    {
-        Vector2Int vTopLeft = new Vector2Int(Mathf.Min(vCellStart.x, vCellEnd.x), Mathf.Min(vCellStart.y, vCellEnd.y));
-        int areaWidth = vCellStart.y - vCellEnd.y;
-        int areaHeight = vCellStart.x - vCellEnd.x;
-        int areaWidthAbs = Mathf.Abs(vCellStart.y - vCellEnd.y) + 1;
-        int areaHeightAbs = Mathf.Abs(vCellStart.x - vCellEnd.x) + 1;
+	{
+		int nCells = aSelectedCells.Count;
+		if(0 == nCells)
+		{
+			return;
+		}
 
-        int nCells = aSelectedCells.Count;
+		//
+		// Look for top-left and bottom-right cells
+		Cell cellTopLeft = aSelectedCells[0], cellBottomRight = aSelectedCells[0];
+		Vector2Int vSelectionTopLeft = new Vector2Int(height, width);
+		Vector2Int vSelectionBottomRight = new Vector2Int(-1, -1);
+		foreach (Cell cell in aSelectedCells)
+		{
+			Vector2Int vCellCoordinates = cell.GetCoordinates();
+			if (	vCellCoordinates.x <= vSelectionTopLeft.x
+				&&	vCellCoordinates.y <= vSelectionTopLeft.y)
+			{
+				cellTopLeft = cell;
+				vSelectionTopLeft = vCellCoordinates;
+			}
+			else if (	vCellCoordinates.x >= vSelectionBottomRight.x
+					&&	vCellCoordinates.y >= vSelectionBottomRight.y)
+			{
+				cellBottomRight = cell;
+				vSelectionBottomRight = vCellCoordinates;
+			}
+		}
+		int iWidth	= 1 + cellBottomRight.GetCoordinates().y - cellTopLeft.GetCoordinates().y;
+		int iHeight	= 1 + cellBottomRight.GetCoordinates().x - cellTopLeft.GetCoordinates().x;
 
         int areaId = -1;
-        if (IsAreaValid(vTopLeft, areaWidthAbs, areaHeightAbs, ref areaId))
+        if (IsAreaValid(cellTopLeft.GetCoordinates(), iWidth, iHeight, ref areaId))
         {
             Color areaColor = UnityEngine.Random.ColorHSV();
             for (int i = 0; i < nCells; ++i)
@@ -314,18 +342,24 @@ public class GameGrid : MonoBehaviour
             }
 
             Image image = aValidatedAreas[areaId].GetComponent<Image>();
-            Vector3 vCellLocation = aGridView[vTopLeft.x, vTopLeft.y].transform.position;
-            vCellLocation.x -= 0.45f;
-            vCellLocation.y += 0.45f;
-            image.transform.position = Camera.main.WorldToScreenPoint(vCellLocation);
-            image.rectTransform.sizeDelta = new Vector2((areaWidthAbs * 8.7f) + (1.6f * (areaWidthAbs - 1)), (areaHeightAbs * 8.7f) + (1.6f * (areaHeightAbs - 1))); // Shitty hardcoded numbers
-            image.color = Color.black;
+
+			//Vector3 vCellLocation = aGridView[vTopLeft.x, vTopLeft.y].transform.position;
+			//vCellLocation.x -= 0.45f;
+			//vCellLocation.y += 0.45f;
+			//image.transform.position = Camera.main.WorldToScreenPoint(vCellLocation);
+			//image.rectTransform.sizeDelta = new Vector2((areaWidthAbs * 8.7f) + (1.6f * (areaWidthAbs - 1)), (areaHeightAbs * 8.7f) + (1.6f * (areaHeightAbs - 1))); // Shitty hardcoded numbers
+			float fScale = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
+			image.rectTransform.sizeDelta = new Vector2(iWidth + (iWidth-1)*0.08f, iHeight + (iHeight - 1) * 0.08f);
+			image.rectTransform.anchoredPosition = new Vector2(
+				fScale * (-(width * 0.5f) + cellTopLeft.GetCoordinates().y * (1 + 0.08f)), 
+				fScale * ((height * 0.5f) - cellTopLeft.GetCoordinates().x * (1 + 0.08f)));
+			image.color = Color.black;
             image.enabled = true;
 
-            aGridModel.m_aAreaList[areaId].startX = vTopLeft.x;
-            aGridModel.m_aAreaList[areaId].startY = vTopLeft.y;
-            aGridModel.m_aAreaList[areaId].width = areaWidthAbs;
-            aGridModel.m_aAreaList[areaId].height = areaHeightAbs;
+            aGridModel.m_aAreaList[areaId].startX = cellTopLeft.GetCoordinates().x;
+            aGridModel.m_aAreaList[areaId].startY = cellTopLeft.GetCoordinates().y;
+            aGridModel.m_aAreaList[areaId].width = iWidth;
+            aGridModel.m_aAreaList[areaId].height = iHeight;
 
             if (usedCellCounter == 0)
             {
