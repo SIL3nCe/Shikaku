@@ -65,4 +65,9 @@ public class Cell : MonoBehaviour
         if (text != null)
             text.text = areaSize.ToString();
     }
+
+	public Vector2Int GetCoordinates()
+	{
+		return vCoordinates;
+	}
 }
