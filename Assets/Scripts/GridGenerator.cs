@@ -190,8 +190,10 @@ class GridGenerator
 			if(block.iAreaValue > 0)
 			{
 				// TODO Set and store area origins based on difficulty instead of using top left
-				aGridOut.m_aAreaList.Add(new Area(block.pos[AXIS_X], block.pos[AXIS_Y], block.iAreaValue));
-				aGridOut.m_aCells[block.pos[AXIS_Y], block.pos[AXIS_X]] = block.iAreaValue;
+				int[] iNewPos = new int[2] {	rnd.Next(block.pos[AXIS_X], block.pos[AXIS_X] + block.size[AXIS_X]),
+												rnd.Next(block.pos[AXIS_Y], block.pos[AXIS_Y] + block.size[AXIS_Y]) };
+				aGridOut.m_aAreaList.Add(new Area(iNewPos[AXIS_X], iNewPos[AXIS_Y], block.iAreaValue));
+				aGridOut.m_aCells[iNewPos[AXIS_Y], iNewPos[AXIS_X]] = block.iAreaValue;
 			}
 		}
 
