@@ -11,6 +11,9 @@ public class GameGrid : MonoBehaviour
     [Tooltip("Cell object to instantiate")]
     public GameObject cellPrefab;
 
+    public float fCellSize = 1.0f;
+    public float fCellSpacing = 0.08f;
+
 	private float m_fCanvasScaleInvert;
 
     // Height = i (y), Width = j (x)
@@ -38,16 +41,15 @@ public class GameGrid : MonoBehaviour
 
     private List<GameObject> aValidatedAreas;
 
-
     private Resolver resolver;
 
     void Start()
     {
-		//
-		// Tests
-		//GridGenerator.TestValidityNeighbourSplitting();
+        //
+        // Tests
+        //GridGenerator.TestValidityNeighbourSplitting();
 
-		m_fCanvasScaleInvert = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
+        m_fCanvasScaleInvert = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
 
 		aValidatedAreas = new List<GameObject>();
     }
@@ -98,7 +100,6 @@ public class GameGrid : MonoBehaviour
         float fTopLeftX = 0.5f - (width * 0.5f);
         float fTopLeftY = -0.5f + (height * 0.5f);
 
-        int cellSize = 1;
         float x = fTopLeftX, y = fTopLeftY;
         for (int iHeight = 0; iHeight < height; ++iHeight)
         {
@@ -107,13 +108,13 @@ public class GameGrid : MonoBehaviour
                 aGridView[iHeight, iWidth] = Instantiate(cellPrefab, GameObject.Find("Canvas").transform);
 				aGridView[iHeight, iWidth].GetComponent<Cell>().transform.localScale = new Vector3(m_fCanvasScaleInvert, m_fCanvasScaleInvert, m_fCanvasScaleInvert);
 				aGridView[iHeight, iWidth].GetComponent<RectTransform>().anchoredPosition3D = new Vector3(x * m_fCanvasScaleInvert, y * m_fCanvasScaleInvert, 0.0f);
-                aGridView[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, 1.0f, this);
+                aGridView[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, fCellSize, this);
 				aGridView[iHeight, iWidth].GetComponent<Cell>().transform.localScale = new Vector3(m_fCanvasScaleInvert, m_fCanvasScaleInvert, m_fCanvasScaleInvert);
-				x += cellSize + 0.08f;
+				x += fCellSize + fCellSpacing;
 				usedCellCounter++;
             }
             x = fTopLeftX;
-            y -= cellSize + 0.08f;
+            y -= fCellSize + fCellSpacing;
         }
 
         int nArea = aGridModel.m_aAreaList.Count;
@@ -343,15 +344,15 @@ public class GameGrid : MonoBehaviour
 
             Image image = aValidatedAreas[areaId].GetComponent<Image>();
 
-			//Vector3 vCellLocation = aGridView[vTopLeft.x, vTopLeft.y].transform.position;
-			//vCellLocation.x -= 0.45f;
-			//vCellLocation.y += 0.45f;
-			//image.transform.position = Camera.main.WorldToScreenPoint(vCellLocation);
-			//image.rectTransform.sizeDelta = new Vector2((areaWidthAbs * 8.7f) + (1.6f * (areaWidthAbs - 1)), (areaHeightAbs * 8.7f) + (1.6f * (areaHeightAbs - 1))); // Shitty hardcoded numbers
-			image.rectTransform.sizeDelta = new Vector2(iWidth + (iWidth-1)*0.08f, iHeight + (iHeight - 1) * 0.08f);
+            //Vector3 vCellLocation = aGridView[vTopLeft.x, vTopLeft.y].transform.position;
+            //vCellLocation.x -= 0.45f;
+            //vCellLocation.y += 0.45f;
+            //image.transform.position = Camera.main.WorldToScreenPoint(vCellLocation);
+            //image.rectTransform.sizeDelta = new Vector2((areaWidthAbs * 8.7f) + (1.6f * (areaWidthAbs - 1)), (areaHeightAbs * 8.7f) + (1.6f * (areaHeightAbs - 1))); // Shitty hardcoded numbers
+            image.rectTransform.sizeDelta = new Vector2(iWidth + (iWidth - 1) * fCellSpacing, iHeight + (iHeight - 1) * fCellSpacing);
 			image.rectTransform.anchoredPosition = new Vector2(
-				m_fCanvasScaleInvert * (-(width * 0.5f) + cellTopLeft.GetCoordinates().y * 1.08f),
-				m_fCanvasScaleInvert * ((height * 0.5f) - cellTopLeft.GetCoordinates().x * 1.08f));
+				m_fCanvasScaleInvert * (-(width * 0.5f) + cellTopLeft.GetCoordinates().y * (fCellSize + fCellSpacing)),
+				m_fCanvasScaleInvert * ((height * 0.5f) - cellTopLeft.GetCoordinates().x * (fCellSize + fCellSpacing)));
 			image.color = Color.black;
             image.enabled = true;
 
