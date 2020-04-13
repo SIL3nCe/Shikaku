@@ -11,7 +11,7 @@ public class GameGrid : MonoBehaviour
     [Tooltip("Cell object to instantiate")]
     public GameObject cellPrefab;
 
-    public float fCellSize = 1.0f;
+    private float fCellSize = 1.0f;
     public float fCellSpacing = 0.08f;
 
 	private float m_fCanvasScaleInvert;
@@ -106,10 +106,8 @@ public class GameGrid : MonoBehaviour
             for (int iWidth = 0; iWidth < width; ++iWidth)
             {
                 aGridView[iHeight, iWidth] = Instantiate(cellPrefab, GameObject.Find("Canvas").transform);
-				aGridView[iHeight, iWidth].GetComponent<Cell>().transform.localScale = new Vector3(m_fCanvasScaleInvert, m_fCanvasScaleInvert, m_fCanvasScaleInvert);
 				aGridView[iHeight, iWidth].GetComponent<RectTransform>().anchoredPosition3D = new Vector3(x * m_fCanvasScaleInvert, y * m_fCanvasScaleInvert, 0.0f);
-                aGridView[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, fCellSize, this);
-				aGridView[iHeight, iWidth].GetComponent<Cell>().transform.localScale = new Vector3(m_fCanvasScaleInvert, m_fCanvasScaleInvert, m_fCanvasScaleInvert);
+                aGridView[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, m_fCanvasScaleInvert, this);
 				x += fCellSize + fCellSpacing;
 				usedCellCounter++;
             }
