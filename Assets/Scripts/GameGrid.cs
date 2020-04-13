@@ -131,7 +131,7 @@ public class GameGrid : MonoBehaviour
             //NewImage.transform.localScale = new Vector3(8.0f, -8.0f, 1.0f); // Negative on height because we always drawing from top left
             NewImage.type = Image.Type.Sliced;
             NewImage.fillCenter = false;
-			NewImage.pixelsPerUnitMultiplier = m_fCanvasScaleInvert * 0.5f;
+			NewImage.pixelsPerUnitMultiplier = m_fCanvasScaleInvert * 0.15f;
 
 			NewObj.GetComponent<RectTransform>().SetParent(ParentCanvasForImages.transform); //Assign the newly created Image GameObject as a Child of the Parent Panel.
             NewObj.SetActive(true);
@@ -334,7 +334,6 @@ public class GameGrid : MonoBehaviour
         int areaId = -1;
         if (IsAreaValid(cellTopLeft.GetCoordinates(), iWidth, iHeight, ref areaId))
         {
-            Color areaColor = UnityEngine.Random.ColorHSV();
             for (int i = 0; i < nCells; ++i)
             {
                 aSelectedCells[i].GetComponent<SpriteRenderer>().color = Color.white;
@@ -351,8 +350,8 @@ public class GameGrid : MonoBehaviour
 			//image.rectTransform.sizeDelta = new Vector2((areaWidthAbs * 8.7f) + (1.6f * (areaWidthAbs - 1)), (areaHeightAbs * 8.7f) + (1.6f * (areaHeightAbs - 1))); // Shitty hardcoded numbers
 			image.rectTransform.sizeDelta = new Vector2(iWidth + (iWidth-1)*0.08f, iHeight + (iHeight - 1) * 0.08f);
 			image.rectTransform.anchoredPosition = new Vector2(
-				m_fCanvasScaleInvert * (-(width * 0.5f) + cellTopLeft.GetCoordinates().y * (1 + 0.08f)),
-				m_fCanvasScaleInvert * ((height * 0.5f) - cellTopLeft.GetCoordinates().x * (1 + 0.08f)));
+				m_fCanvasScaleInvert * (-(width * 0.5f) + cellTopLeft.GetCoordinates().y * 1.08f),
+				m_fCanvasScaleInvert * ((height * 0.5f) - cellTopLeft.GetCoordinates().x * 1.08f));
 			image.color = Color.black;
             image.enabled = true;
 
