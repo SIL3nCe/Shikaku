@@ -155,8 +155,12 @@ class Resolver
 
     public void Resolve(in GridModel aBaseGrid)
     {
+        // Abandonned since it generate way too much grids and then explode RAM in hard levels
+
         m_aGridList = new List<GridModel>();
         m_aGridList.Add(aBaseGrid);
+
+        Debug.Log(aBaseGrid.ToString());
 
         m_iWidth = aBaseGrid.m_iWidth;
         m_iHeight = aBaseGrid.m_iHeight;
@@ -173,7 +177,7 @@ class Resolver
 
             if (nSolutions > 100000)
             {
-                Debug.Log("Aborted resolver, more than 100k solutions");
+                Debug.Log("Aborted resolver, too much solutions: " + nSolutions);
                 m_aGridList.Clear();
                 break;
             }
@@ -195,7 +199,12 @@ class Resolver
         }
     }
 
-    public int CheckGridFeasbility(GridModel aBaseGrid)
+    public void SetSolutionToUse(in GridModel aGrid)
+    {
+        m_aGridList.Add(aGrid);
+    }
+
+    public int CheckGridFeasbility(in GridModel aBaseGrid)
     {
         for (int i = 0; i < m_aGridList.Count; ++i)
         {
