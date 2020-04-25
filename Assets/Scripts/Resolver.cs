@@ -157,12 +157,16 @@ class Resolver
 
     public void Resolve(in GridModel aBaseGrid)
     {
-        //TODO Optimize for large grids
-        if (aBaseGrid.m_iHeight > 10 || aBaseGrid.m_iWidth > 10)
-            return;
-
         m_aGeneratedGrids = new List<GridModel>();
         m_aGrids = new List<GridModel>();
+
+        //TODO Optimize for large grids
+        if (aBaseGrid.m_iHeight > 10 || aBaseGrid.m_iWidth > 10)
+        {
+            m_aGrids.Add(new GridModel(aBaseGrid));
+            return;
+        }
+
         m_aGrids.Add(aBaseGrid);
 
         Debug.Log(aBaseGrid.ToString());
@@ -231,11 +235,6 @@ class Resolver
         }
 
         return -1;
-    }
-
-    public void SetSolutionToUse(in GridModel aGrid)
-    {
-        m_aGrids.Add(aGrid);
     }
 
     public Area GetCompletedArea(int solutionId, int areaId)

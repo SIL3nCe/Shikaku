@@ -81,6 +81,8 @@ public class GameGrid : MonoBehaviour
     {
         Clean();
 
+        //
+        // Generator
         Debug.Log("Generate grid");
         float fTimeCounter = Time.realtimeSinceStartup;
         GridGenerator generator = new GridGenerator();
@@ -93,7 +95,17 @@ public class GameGrid : MonoBehaviour
 
         height = aGridModel.m_iHeight;
         width = aGridModel.m_iWidth;
+        
+        //
+        // Solver
+        Debug.Log("Resolving grid");
+        fTimeCounter = Time.realtimeSinceStartup;
+        resolver = new Resolver();
+        resolver.Resolve(aGridModel);
+        Debug.Log("Resolved grid in " + (Time.realtimeSinceStartup - fTimeCounter));
 
+        //
+        // Game grid
         aGridView = new GameObject[height, width];
 
         // Set grid center in 0,0
@@ -119,6 +131,7 @@ public class GameGrid : MonoBehaviour
         for (int i = 0; i < nArea; ++i)
         {
             Area area = aGridModel.m_aAreaList[i];
+            area.Reset();
             aGridView[area.x, area.y].GetComponent<Cell>().SetAreaSize(area.value);
             
             // Create Image rectangle for each origin
@@ -137,12 +150,6 @@ public class GameGrid : MonoBehaviour
 
             aValidatedAreas.Add(NewObj);
         }
-
-        Debug.Log("Resolving grid");
-        fTimeCounter = Time.realtimeSinceStartup;
-        resolver = new Resolver();
-        resolver.Resolve(aGridModel);
-        Debug.Log("Resolved grid in " + (Time.realtimeSinceStartup - fTimeCounter));
 
         bGridEnded = false;
     }

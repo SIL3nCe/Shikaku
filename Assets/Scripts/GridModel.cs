@@ -13,12 +13,15 @@ class Area : IComparable
     public int startX, startY;
     public int width, height;
 
-    public Area(int _x, int _y, int _value)
+    public Area(int _x, int _y, int _value, int _startX = -1, int _startY = -1, int _width = -1, int _height = -1)
     {
         x = _x;
         y = _y;
         value = _value;
-        startX = startY = width = height = -1;
+        startX = _startX;
+        startY = _startY;
+        width = _width;
+        height = _height;
     }
 
     public Area(Area other)
