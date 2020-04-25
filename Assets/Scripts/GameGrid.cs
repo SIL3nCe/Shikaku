@@ -168,7 +168,7 @@ public class GameGrid : MonoBehaviour
             int nArea = aGridModel.m_aAreaList.Count;
             for (int iArea = 0; iArea < nArea; ++iArea)
             {
-                if (-1 == aGridModel.m_aAreaList[iArea].startX)
+                if (!aGridModel.m_aAreaList[iArea].IsCompleted())
                 {
                     Area area = resolver.GetCompletedArea(solutionId, iArea);
 

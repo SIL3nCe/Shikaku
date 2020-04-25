@@ -37,12 +37,16 @@ class Area : IComparable
         startX = startY = width = height = -1;
     }
 
-    // For sort
     public int CompareTo(object Other)
     {
         Area otherPoint = Other as Area;
+        // Biggest first
         if (this.value > otherPoint.value)
             return -1;
+
+        // Manhattan dist to 0,0
+        //if ((x + y) <= (otherPoint.x + otherPoint.y))
+        //    return -1;
 
         return 1;
     }
@@ -66,6 +70,11 @@ class Area : IComparable
             return true;
 
         return false;
+    }
+
+    public bool IsCompleted()
+    {
+        return startX != -1;
     }
 
     public override string ToString()
@@ -92,13 +101,12 @@ class GridModel
         m_aCells = new int[m_iHeight, m_iWidth];
         m_aAreaList = new List<Area>();
     }
-
-    public GridModel DeepCopy()
+    public GridModel(GridModel other)
     {
-        GridModel other = (GridModel)this.MemberwiseClone();
-        other.m_aAreaList = m_aAreaList.ConvertAll(area => new Area(area));
-        other.m_aCells = m_aCells.Clone() as int[,];
-        return other;
+        m_iWidth = other.m_iWidth;
+        m_iHeight = other.m_iHeight;
+        m_aAreaList = other.m_aAreaList.ConvertAll(area => new Area(area));
+        m_aCells = other.m_aCells.Clone() as int[,];
     }
 
     public override string ToString()
