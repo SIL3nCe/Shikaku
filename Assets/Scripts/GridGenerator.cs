@@ -5,9 +5,12 @@ using UnityEngine.Assertions;
 using System;
 public enum EDifficulty
 {
+	veryeasy,
 	easy,
 	medium,
 	hard,
+
+	max,
 }
 
 class GridGenerator
@@ -85,8 +88,9 @@ class GridGenerator
 		int iWidth, iHeight;
 		switch (eDifficulty)
 		{
-			case EDifficulty.easy: { iWidth = iHeight = 5; } break;
-			case EDifficulty.medium: { iWidth = iHeight = 10; } break;
+			case EDifficulty.veryeasy: { iWidth = iHeight = 5; } break;
+			case EDifficulty.easy: { iWidth = iHeight = 10; } break;
+			case EDifficulty.medium: { iWidth = iHeight = 15; } break;
 			case EDifficulty.hard: { iWidth = iHeight = 20; } break;
 			default: { iWidth = iHeight = 0; Assert.IsTrue(false); } break;
 		}

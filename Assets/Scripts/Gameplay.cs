@@ -19,6 +19,9 @@ public class Gameplay : MonoBehaviour
 
     void Start()
     {
+        if (EDifficulty.max != StaticDatas.eCurrentDifficulty)
+            Difficulty = StaticDatas.eCurrentDifficulty;
+
         gameGrid = gameObject.GetComponent<GameGrid>();
         gameGrid.Generate(Difficulty);
 
