@@ -5,9 +5,12 @@ using UnityEngine.Assertions;
 using System;
 public enum EDifficulty
 {
+	veryeasy,
 	easy,
 	medium,
 	hard,
+
+	max,
 }
 
 class GridGenerator
@@ -85,8 +88,9 @@ class GridGenerator
 		int iWidth, iHeight;
 		switch (eDifficulty)
 		{
-			case EDifficulty.easy: { iWidth = iHeight = 5; } break;
-			case EDifficulty.medium: { iWidth = iHeight = 10; } break;
+			case EDifficulty.veryeasy: { iWidth = iHeight = 5; } break;
+			case EDifficulty.easy: { iWidth = iHeight = 10; } break;
+			case EDifficulty.medium: { iWidth = iHeight = 15; } break;
 			case EDifficulty.hard: { iWidth = iHeight = 20; } break;
 			default: { iWidth = iHeight = 0; Assert.IsTrue(false); } break;
 		}
@@ -192,7 +196,7 @@ class GridGenerator
 				// TODO Set and store area origins based on difficulty instead of using top left
 				int[] iNewPos = new int[2] {	rnd.Next(block.pos[AXIS_X], block.pos[AXIS_X] + block.size[AXIS_X]),
 												rnd.Next(block.pos[AXIS_Y], block.pos[AXIS_Y] + block.size[AXIS_Y]) };
-				aGridOut.m_aAreaList.Add(new Area(iNewPos[AXIS_X], iNewPos[AXIS_Y], block.iAreaValue));
+				aGridOut.m_aAreaList.Add(new Area(iNewPos[AXIS_X], iNewPos[AXIS_Y], block.iAreaValue, block.pos[AXIS_Y], block.pos[AXIS_X], block.size[AXIS_X], block.size[AXIS_Y]));
 				aGridOut.m_aCells[iNewPos[AXIS_X], iNewPos[AXIS_Y]] = block.iAreaValue;
 			}
 		}

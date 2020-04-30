@@ -19,6 +19,12 @@ public class Gameplay : MonoBehaviour
 
     void Start()
     {
+        if (EDifficulty.max != StaticDatas.eCurrentDifficulty)
+            Difficulty = StaticDatas.eCurrentDifficulty;
+
+        gameGrid = gameObject.GetComponent<GameGrid>();
+        gameGrid.Generate(Difficulty);
+
         SelectionRectangle.enabled = false;
         SelectionRectangle.transform.SetAsLastSibling(); // Draw it last, on top of all gui
 		m_fCanvasScaleInvert = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
