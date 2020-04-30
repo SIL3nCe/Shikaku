@@ -43,13 +43,42 @@ public class GameGrid : MonoBehaviour
 
     private Resolver resolver;
 
-    void Start()
+	public void UpdateScale(float fScale)
+	{
+		for (int iHeight = 0; iHeight < height; ++iHeight)
+		{
+			for (int iWidth = 0; iWidth < width; ++iWidth)
+			{
+				Vector3 vPos = aGridView[iHeight, iWidth].GetComponent<RectTransform>().anchoredPosition3D;
+				aGridView[iHeight, iWidth].GetComponent<RectTransform>().anchoredPosition3D = new Vector3(fScale * vPos.x / m_fCanvasScaleInvert, fScale * vPos.y / m_fCanvasScaleInvert, 0.0f);
+				aGridView[iHeight, iWidth].GetComponent<Cell>().gameObject.transform.localScale = new Vector3(fScale, fScale, 1);
+			}
+		}
+
+		//
+		// Validates areas
+		foreach(GameObject area in aValidatedAreas)
+		{
+			Image image = area.GetComponent<Image>();
+
+			if(image)
+			{
+				//image.rectTransform.sizeDelta = new
+				image.rectTransform.anchoredPosition3D = new Vector3(fScale * image.rectTransform.anchoredPosition.x / m_fCanvasScaleInvert, fScale * image.rectTransform.anchoredPosition.y / m_fCanvasScaleInvert, 0.0f);
+				image.gameObject.transform.localScale = new Vector3(fScale, fScale, 1.0f);
+			}
+		}
+
+		//
+		// Update scale
+		m_fCanvasScaleInvert = fScale;
+	}
+
+	void Start()
     {
         //
         // Tests
         //GridGenerator.TestValidityNeighbourSplitting();
-
-        m_fCanvasScaleInvert = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
 
 		aValidatedAreas = new List<GameObject>();
     }

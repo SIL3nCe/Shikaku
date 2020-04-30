@@ -19,21 +19,31 @@ public class Gameplay : MonoBehaviour
 
     void Start()
     {
-        gameGrid = gameObject.GetComponent<GameGrid>();
-        gameGrid.Generate(Difficulty);
-
         SelectionRectangle.enabled = false;
         SelectionRectangle.transform.SetAsLastSibling(); // Draw it last, on top of all gui
 		m_fCanvasScaleInvert = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
 		SelectionRectangle.transform.localScale = new Vector3(m_fCanvasScaleInvert, m_fCanvasScaleInvert, m_fCanvasScaleInvert);
 		SelectionRectangle.pixelsPerUnitMultiplier = m_fCanvasScaleInvert / 2;
 
+        gameGrid = gameObject.GetComponent<GameGrid>();
+		gameGrid.UpdateScale(m_fCanvasScaleInvert);
+        gameGrid.Generate(Difficulty);
+
 		bSelection = false;
     }
 
     void Update()
     {
-        if (Input.GetKeyDown("r"))
+		//
+		// Update scale of canvas according to window in case of a resize
+		float fScale = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
+		if(!Mathf.Approximately(fScale, m_fCanvasScaleInvert))
+		{
+			m_fCanvasScaleInvert = fScale;
+			gameGrid.UpdateScale(fScale);
+		}
+
+		if (Input.GetKeyDown("r"))
         {
             gameGrid.Generate(Difficulty);
         }
