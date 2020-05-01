@@ -14,7 +14,7 @@ public class GameGrid : MonoBehaviour
     private float fCellSize = 1.0f;
     public float fCellSpacing = 0.08f;
 
-	private float m_fCanvasScaleInvert;
+	private float m_fCanvasScaleInvert = 1.0f;
 
     // Height = i (y), Width = j (x)
     private GameObject[,] aGridView;
@@ -38,8 +38,10 @@ public class GameGrid : MonoBehaviour
     // Selected area visual
     public Sprite AreaSelectionRectangle;
     public GameObject ParentCanvasForImages;
+    public GameObject CellsContainer;
+    public GameObject RectsContainer;
 
-    private List<GameObject> aValidatedAreas;
+	private List<GameObject> aValidatedAreas;
 
     private Resolver resolver;
 
@@ -146,7 +148,7 @@ public class GameGrid : MonoBehaviour
         {
             for (int iWidth = 0; iWidth < width; ++iWidth)
             {
-                aGridView[iHeight, iWidth] = Instantiate(cellPrefab, GameObject.Find("Canvas").transform);
+                aGridView[iHeight, iWidth] = Instantiate(cellPrefab, CellsContainer.transform);
 				aGridView[iHeight, iWidth].GetComponent<RectTransform>().anchoredPosition3D = new Vector3(x * m_fCanvasScaleInvert, y * m_fCanvasScaleInvert, 0.0f);
                 aGridView[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, m_fCanvasScaleInvert, this);
 				x += fCellSize + fCellSpacing;
@@ -174,7 +176,7 @@ public class GameGrid : MonoBehaviour
             NewImage.fillCenter = false;
 			NewImage.pixelsPerUnitMultiplier = m_fCanvasScaleInvert * 0.15f;
 
-			NewObj.GetComponent<RectTransform>().SetParent(ParentCanvasForImages.transform); //Assign the newly created Image GameObject as a Child of the Parent Panel.
+			NewObj.GetComponent<RectTransform>().SetParent(RectsContainer.transform); //Assign the newly created Image GameObject as a Child of the Parent Panel.
             NewObj.SetActive(true);
 
             aValidatedAreas.Add(NewObj);

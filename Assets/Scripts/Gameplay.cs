@@ -12,7 +12,8 @@ public class Gameplay : MonoBehaviour
     public Image SelectionRectangle;
     [Range(1, 50)]
     public float fSelecRectScale;
-    private float m_fCanvasScaleInvert;
+	public GameObject CanvasGame;
+    private float m_fCanvasScaleInvert = 1.0f;
 
     private bool bSelection;
     private Vector2 vMouseStart;
@@ -27,26 +28,42 @@ public class Gameplay : MonoBehaviour
 
         SelectionRectangle.enabled = false;
         SelectionRectangle.transform.SetAsLastSibling(); // Draw it last, on top of all gui
-		m_fCanvasScaleInvert = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
-		SelectionRectangle.transform.localScale = new Vector3(m_fCanvasScaleInvert, m_fCanvasScaleInvert, m_fCanvasScaleInvert);
-		SelectionRectangle.pixelsPerUnitMultiplier = m_fCanvasScaleInvert / 2;
-
         gameGrid = gameObject.GetComponent<GameGrid>();
-		gameGrid.UpdateScale(m_fCanvasScaleInvert);
+
+		UpdateScale(1.0f);
+
         gameGrid.Generate(Difficulty);
 
 		bSelection = false;
     }
 
+	private void UpdateScale(float fScale)
+	{
+		//
+		// Selection rectangles
+		Vector3 vPos = SelectionRectangle.rectTransform.anchoredPosition3D;
+		SelectionRectangle.rectTransform.anchoredPosition3D = new Vector3(vPos.x * m_fCanvasScaleInvert, vPos.y * m_fCanvasScaleInvert, vPos.z * m_fCanvasScaleInvert);
+		SelectionRectangle.transform.localScale = new Vector3(m_fCanvasScaleInvert, m_fCanvasScaleInvert, m_fCanvasScaleInvert);
+		SelectionRectangle.pixelsPerUnitMultiplier = m_fCanvasScaleInvert / 2;
+		SelectionRectangle.pixelsPerUnitMultiplier = m_fCanvasScaleInvert / 2;
+
+		//
+		// Gamegrid
+		gameGrid.UpdateScale(m_fCanvasScaleInvert);
+
+		//
+		// Update value
+		m_fCanvasScaleInvert = fScale;
+	}
+
     void Update()
     {
 		//
 		// Update scale of canvas according to window in case of a resize
-		float fScale = 1.0f / GameObject.Find("Canvas").transform.localScale.x;
+		float fScale = 1.0f;
 		if(!Mathf.Approximately(fScale, m_fCanvasScaleInvert))
 		{
-			m_fCanvasScaleInvert = fScale;
-			gameGrid.UpdateScale(fScale);
+			UpdateScale(fScale);
 		}
 
 		if (Input.GetKeyDown("r"))
@@ -84,6 +101,7 @@ public class Gameplay : MonoBehaviour
                 // Check game grid can begin selection before
                 if (gameGrid.BeginSelection())
                 {
+					Debug.Log(Input.mousePosition);
                     vMouseStart = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                     SelectionRectangle.rectTransform.anchoredPosition3D = vMouseStart * SelectionRectangle.rectTransform.localScale;
                     SelectionRectangle.enabled = true;
