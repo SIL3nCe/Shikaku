@@ -13,6 +13,7 @@ public class Gameplay : MonoBehaviour
     [Range(1, 50)]
     public float fSelecRectScale;
 	public GameObject CanvasGame;
+	public CanvasGameInputsHandler m_inputHandler;
     private float m_fCanvasScaleInvert = 1.0f;
 
     private bool bSelection;
@@ -93,16 +94,16 @@ public class Gameplay : MonoBehaviour
             }
         }
 
-        if (Input.GetMouseButton(0))
-        {
+		if (Input.GetMouseButton(0))
+		{
+			Vector2 vInputPosition = m_inputHandler.GetInputPosition();
 			SelectionRectangle.transform.SetAsLastSibling(); // Draw it last, on top of all gui
             if (!bSelection)
 			{
                 // Check game grid can begin selection before
-                if (gameGrid.BeginSelection())
+                if (gameGrid.BeginSelection(vInputPosition))
                 {
-					Debug.Log(Input.mousePosition);
-                    vMouseStart = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                    vMouseStart = vInputPosition;
                     SelectionRectangle.rectTransform.anchoredPosition3D = vMouseStart * SelectionRectangle.rectTransform.localScale;
                     SelectionRectangle.enabled = true;
                     bSelection = true;
@@ -110,10 +111,8 @@ public class Gameplay : MonoBehaviour
             }
             else
             {
-                Vector2 vCurrentMouseLoc = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-				float fWidth = (vMouseStart.x - vCurrentMouseLoc.x);
-				float fHeight = (vMouseStart.y - vCurrentMouseLoc.y);
+				float fWidth = (vMouseStart.x - vInputPosition.x);
+				float fHeight = (vMouseStart.y - vInputPosition.y);
 				Vector3 vScale = new Vector3(fWidth < 0.0f ? m_fCanvasScaleInvert : -m_fCanvasScaleInvert, fHeight < 0.0f ? m_fCanvasScaleInvert : -m_fCanvasScaleInvert, m_fCanvasScaleInvert);
 				SelectionRectangle.transform.localScale = vScale;
 				SelectionRectangle.rectTransform.sizeDelta = new Vector2(Mathf.Abs(fWidth), Mathf.Abs(fHeight));

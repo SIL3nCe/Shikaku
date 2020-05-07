@@ -120,6 +120,12 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!223 &411120208 stripped
+Canvas:
+  m_CorrespondingSourceObject: {fileID: 322497937486868801, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
+    type: 3}
+  m_PrefabInstance: {fileID: 322497936463060476}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &627994952
 GameObject:
   m_ObjectHideFlags: 0
@@ -216,6 +222,12 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 5808184788479017693}
   m_PrefabAsset: {fileID: 0}
+--- !u!223 &2119115074 stripped
+Canvas:
+  m_CorrespondingSourceObject: {fileID: 5808184788381705116, guid: b33f1dc2355ed0c43becef26a5eee69d,
+    type: 3}
+  m_PrefabInstance: {fileID: 5808184788479017693}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &322497936463060476
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -263,6 +275,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: CameraGUI
       objectReference: {fileID: 0}
+    - target: {fileID: 4778592552407195835, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
+        type: 3}
+      propertyPath: m_CanvasGameInputsHandler
+      value: 
+      objectReference: {fileID: 5808184788479017694}
+    - target: {fileID: 4778592552407195835, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
+        type: 3}
+      propertyPath: m_canvasGame
+      value: 
+      objectReference: {fileID: 2119115074}
+    - target: {fileID: 4778592552407195835, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
+        type: 3}
+      propertyPath: m_CanvasGUI
+      value: 
+      objectReference: {fileID: 411120208}
+    - target: {fileID: 4778592552407195835, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
+        type: 3}
+      propertyPath: m_CanvasGame
+      value: 
+      objectReference: {fileID: 2119115074}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b84de41ddd2f7d649a2ba5465e5fa99d, type: 3}
 --- !u!1001 &5808184788479017693
@@ -314,6 +346,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b33f1dc2355ed0c43becef26a5eee69d, type: 3}
+--- !u!114 &5808184788479017694 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2527863176004967125, guid: b33f1dc2355ed0c43becef26a5eee69d,
+    type: 3}
+  m_PrefabInstance: {fileID: 5808184788479017693}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2119115070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c5735502e99c4f48b0ba456eab71bcd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &7297917555944102686
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -386,6 +430,11 @@ PrefabInstance:
       propertyPath: CanvasGame
       value: 
       objectReference: {fileID: 2119115070}
+    - target: {fileID: 7297917554626348417, guid: d127db12c22bb194e955c0a49fa5900b,
+        type: 3}
+      propertyPath: m_inputHandler
+      value: 
+      objectReference: {fileID: 5808184788479017694}
     - target: {fileID: 7297917554626348418, guid: d127db12c22bb194e955c0a49fa5900b,
         type: 3}
       propertyPath: m_Name

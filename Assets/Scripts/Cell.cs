@@ -27,13 +27,13 @@ public class Cell : MonoBehaviour
         gridObject = grid;
     }
 
-    private void OnMouseEnter()
+    public void OnMouseEnter()
     {
         bHasMouseOnIt = true;
         gridObject.OnCellHitByCursor(vCoordinates);
     }
 
-    private void OnMouseExit()
+	public void OnMouseExit()
     {
         bHasMouseOnIt = false;
     }

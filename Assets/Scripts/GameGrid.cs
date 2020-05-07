@@ -281,7 +281,7 @@ public class GameGrid : MonoBehaviour
         }
     }
 
-    public bool BeginSelection()
+    public bool BeginSelection(Vector2 vInputPosition)
     {
         if (bGridEnded)
             return false;
@@ -320,7 +320,7 @@ public class GameGrid : MonoBehaviour
         bSelection = true;
 
         vCellStart = vLastCellEntered;
-        vSelectionStart = Input.mousePosition;
+        vSelectionStart = vInputPosition;
         vSelectionStart.y = Camera.main.pixelHeight - vSelectionStart.y;
 
         return true;
