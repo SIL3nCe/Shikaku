@@ -21,11 +21,10 @@ public class Gameplay : MonoBehaviour
 
     void Start()
     {
-        if (EDifficulty.max != StaticDatas.eCurrentDifficulty)
-            Difficulty = StaticDatas.eCurrentDifficulty;
-
-        gameGrid = gameObject.GetComponent<GameGrid>();
-        gameGrid.Generate(Difficulty);
+		if (EDifficulty.max != StaticDatas.eCurrentDifficulty)
+		{
+			Difficulty = StaticDatas.eCurrentDifficulty;
+		}
 
         SelectionRectangle.enabled = false;
         SelectionRectangle.transform.SetAsLastSibling(); // Draw it last, on top of all gui
@@ -129,4 +128,9 @@ public class Gameplay : MonoBehaviour
 			SelectionRectangle.transform.localScale = new Vector3(m_fCanvasScaleInvert, m_fCanvasScaleInvert, m_fCanvasScaleInvert);
         }
     }
+
+	public GameGrid GetGameGrid()
+	{
+		return gameGrid;
+	}
 }

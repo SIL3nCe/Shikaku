@@ -30,7 +30,7 @@ public class Cell : MonoBehaviour
     public void OnMouseEnter()
     {
         bHasMouseOnIt = true;
-        gridObject.OnCellHitByCursor(vCoordinates);
+        gridObject.OnCellHovered(this);
     }
 
 	public void OnMouseExit()

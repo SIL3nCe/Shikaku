@@ -61,7 +61,6 @@ public class GameInputForwarder : MonoBehaviour
 				{
 					m_currentInputHandler.InputsStopped();
 				}
-					Debug.Log("screen position before : " + vScreenPosition);
 				m_currentInputHandler = m_CanvasGameInputsHandler;
 				vScreenPosition.x *= 1.0f / m_CanvasGUI.GetComponent<RectTransform>().rect.width;
 				vScreenPosition.y *= 1.0f / m_CanvasGUI.GetComponent<RectTransform>().rect.height;
