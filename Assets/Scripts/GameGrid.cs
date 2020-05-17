@@ -91,8 +91,6 @@ public class GameGrid : MonoBehaviour
 		// Outside
 		if(vScreenPosition.x < m_vTopLeft.x || vScreenPosition.x > m_vTopLeft.x + m_iWidth || vScreenPosition.y > m_vTopLeft.y || vScreenPosition.y < m_vTopLeft.y - m_iHeight)
 		{
-			Debug.Log("outside grid");
-
 			//
 			// Update state
 			OnCurrentCellUnhovered();
@@ -102,21 +100,16 @@ public class GameGrid : MonoBehaviour
 		}
 		else // Inside
 		{
-			Debug.Log("inside grid");
 
 			//
 			// If coming from outside, look for hovered cell
 			if (!m_bInputInsideGrid || (null == m_cellHovered && null == m_cellLastHovered))
 			{
-				Debug.Log("full research");
-				ResolveInputPositionForCells(0, m_iHeight, 0, m_iWidth, vScreenPosition);
 
 				m_bInputInsideGrid = true;
 			}
 			else
 			{
-				Debug.Log("partial research");
-
 				//
 				// Otherwise check if hovered cell changed using neighbourhood
 				int iYM = Mathf.Max(0, m_cellLastHovered.GetCoordinates().y - 1);
@@ -145,7 +138,6 @@ public class GameGrid : MonoBehaviour
 
 	private bool ResolveInputPositionForCells(int iStartY, int iEndY, int iStartX, int iEndX, Vector2 vScreenPosition)
 	{
-		Debug.Log("resolve ip for cells from x : ["+iStartX+","+iEndX+"[, y:["+iStartY+ ","+iEndY+"[");
 		float fHalfCellSize = m_fCellSize * m_fScaleFactor * 0.5f;
 		for (int iHeight = iStartY; iHeight < iEndY; ++iHeight)
 		{
@@ -357,8 +349,6 @@ public class GameGrid : MonoBehaviour
 			return;
 		}
 
-		Debug.Log("cell hovered : " + cell + ": "+cell.GetCoordinates());
-
 		//
 		// Unselect cell and select new one
 		OnCurrentCellUnhovered();
@@ -418,8 +408,6 @@ public class GameGrid : MonoBehaviour
 	{
 		if (null != m_cellHovered)
 		{
-			Debug.Log("unhovering cell " + m_cellHovered);
-
 			m_cellHovered.GetComponent<SpriteRenderer>().color = new Color(1.0f, 1.0f, 1.0f);
 			m_cellHovered.bHasMouseOnIt = false;
 			m_cellHovered = null;
