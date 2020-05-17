@@ -28,46 +28,57 @@ public class GameInputForwarder : MonoBehaviour
 		//
 		// Setup input handlers
 		m_CanvasGameInputsHandler.SetCanvasGame(m_CanvasGame);
+		m_CanvasGameInputsHandler.SetCanvasGUI(m_CanvasGUI);
 	}
 
-    // Update is called once per frame
-    void Update()
+	bool IsInputTriggered()
 	{
-		RectTransform rectTransform = GetComponent<RectTransform>();
-		Vector2 vScreenPosition;
-		RectTransformUtility.ScreenPointToLocalPointInRectangle(m_CanvasGUI.transform as RectTransform, Input.mousePosition, m_CanvasGUI.worldCamera, out vScreenPosition);
+		return Input.GetMouseButton(0);
+	}
 
-		//
-		// Beware, coordinate system is x+ towards left and y+ towards up
-		if(		vScreenPosition.x > -rectTransform.rect.width*0.5f
-			&&	vScreenPosition.x < rectTransform.rect.width * 0.5f
-			&&	vScreenPosition.y > -rectTransform.rect.height * 0.5f
-			&&	vScreenPosition.y < rectTransform.rect.height * 0.5f)
+	// Update is called once per frame
+	void Update()
+	{
+		if (IsInputTriggered())
 		{
+			RectTransform rectTransform = GetComponent<RectTransform>();
+			Vector2 vScreenPosition;
+			RectTransformUtility.ScreenPointToLocalPointInRectangle(m_CanvasGUI.transform as RectTransform, Input.mousePosition, m_CanvasGUI.worldCamera, out vScreenPosition);
+
 			//
-			// Camera inputs first
-			float fPanelCameraInputHeight = m_PanelCameraInputs.GetComponent<RectTransform>().rect.height;
-			if (vScreenPosition.y < -rectTransform.rect.height * 0.5f + fPanelCameraInputHeight)
+			// Beware, coordinate system is x+ towards left and y+ towards up
+			if (	vScreenPosition.x > -rectTransform.rect.width * 0.5f
+				&&	vScreenPosition.x < rectTransform.rect.width * 0.5f
+				&&	vScreenPosition.y > -rectTransform.rect.height * 0.5f
+				&&	vScreenPosition.y < rectTransform.rect.height * 0.5f)
 			{
-				if(null != m_currentInputHandler && m_CameraInputsHandler != m_currentInputHandler)
+				if (null == m_currentInputHandler)
 				{
-					m_currentInputHandler.InputsStopped();
+					//
+					// Camera inputs first
+					float fPanelCameraInputHeight = m_PanelCameraInputs.GetComponent<RectTransform>().rect.height;
+					if (vScreenPosition.y < -rectTransform.rect.height * 0.5f + fPanelCameraInputHeight)
+					{
+						m_currentInputHandler = m_CameraInputsHandler;
+					}
+					else // GameCanvas inputs
+					{
+						m_currentInputHandler = m_CanvasGameInputsHandler;
+					}
 				}
-				m_currentInputHandler = m_CameraInputsHandler;
+
+				if (null != m_currentInputHandler)
+				{
+					m_currentInputHandler.HandleInputs(vScreenPosition);
+				}
 			}
-			else // GameCanvas inputs
+			else if (null != m_currentInputHandler)
 			{
-				if (null != m_currentInputHandler && m_CanvasGameInputsHandler != m_currentInputHandler)
-				{
-					m_currentInputHandler.InputsStopped();
-				}
-				m_currentInputHandler = m_CanvasGameInputsHandler;
-				vScreenPosition.x *= 1.0f / m_CanvasGUI.GetComponent<RectTransform>().rect.width;
-				vScreenPosition.y *= 1.0f / m_CanvasGUI.GetComponent<RectTransform>().rect.height;
+				m_currentInputHandler.InputsStopped();
+				m_currentInputHandler = null;
 			}
-			m_currentInputHandler.HandleInputs(vScreenPosition);
 		}
-		else if(null != m_currentInputHandler)
+		else if (null != m_currentInputHandler)
 		{
 			m_currentInputHandler.InputsStopped();
 			m_currentInputHandler = null;

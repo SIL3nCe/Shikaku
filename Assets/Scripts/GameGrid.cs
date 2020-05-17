@@ -22,7 +22,6 @@ public class GameGrid : MonoBehaviour
 
 	//
 	// Input related
-	private bool m_bInputInsideCanvas = false;
 	private bool m_bInputInsideGrid = false;
 	private Cell m_cellHovered = null;
 	private Cell m_cellLastHovered = null;
@@ -88,25 +87,16 @@ public class GameGrid : MonoBehaviour
 	public void UpdateInputPosition(Vector2 vScreenPosition)
 	{
 		//
-		// Outside
-		if(vScreenPosition.x < m_vTopLeft.x || vScreenPosition.x > m_vTopLeft.x + m_iWidth || vScreenPosition.y > m_vTopLeft.y || vScreenPosition.y < m_vTopLeft.y - m_iHeight)
+		// Inside grid bounds
+		if(!(vScreenPosition.x < m_vTopLeft.x || vScreenPosition.x > m_vTopLeft.x + m_iWidth || vScreenPosition.y > m_vTopLeft.y || vScreenPosition.y < m_vTopLeft.y - m_iHeight))
 		{
-			//
-			// Update state
-			OnCurrentCellUnhovered();
-
-			m_bInputInsideCanvas = true;
-			m_bInputInsideGrid = false;
-		}
-		else // Inside
-		{
+			m_bInputInsideGrid = true;
 
 			//
 			// If coming from outside, look for hovered cell
-			if (!m_bInputInsideGrid || (null == m_cellHovered && null == m_cellLastHovered))
+			if (null == m_cellHovered && null == m_cellLastHovered)
 			{
-
-				m_bInputInsideGrid = true;
+				ResolveInputPositionForCells(0, m_iHeight, 0, m_iWidth, vScreenPosition);
 			}
 			else
 			{
@@ -118,7 +108,12 @@ public class GameGrid : MonoBehaviour
 				int iXP = Mathf.Min(m_iWidth, m_cellLastHovered.GetCoordinates().x + 2);
 				if(!ResolveInputPositionForCells(iYM, iYP, iXM, iXP, vScreenPosition))
 				{
-					OnCurrentCellUnhovered();
+					//
+					// Fallback
+					if(!ResolveInputPositionForCells(0, m_iHeight, 0, m_iWidth, vScreenPosition))
+					{
+						OnCurrentCellUnhovered();
+					}
 				}
 			}
 		}
@@ -126,14 +121,10 @@ public class GameGrid : MonoBehaviour
 
 	public void InputsStopped()
 	{
-		if(m_bInputInsideCanvas)
-		{
-			m_bInputInsideCanvas = false;
-			m_bInputInsideGrid = false;
+		m_bInputInsideGrid = false;
 
-			OnCurrentCellUnhovered();
-			m_cellLastHovered = null;
-		}
+		OnCurrentCellUnhovered();
+		m_cellLastHovered = null;
 	}
 
 	private bool ResolveInputPositionForCells(int iStartY, int iEndY, int iStartX, int iEndX, Vector2 vScreenPosition)
