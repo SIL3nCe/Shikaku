@@ -106,7 +106,7 @@ public class GameGrid : MonoBehaviour
 
 			//
 			// If coming from outside, look for hovered cell
-			if (true)//!m_bInputInsideGrid || (null == m_cellHovered && null == m_cellLastHovered))
+			if (!m_bInputInsideGrid || (null == m_cellHovered && null == m_cellLastHovered))
 			{
 				Debug.Log("full research");
 				ResolveInputPositionForCells(0, m_iHeight, 0, m_iWidth, vScreenPosition);
@@ -145,6 +145,8 @@ public class GameGrid : MonoBehaviour
 
 	private bool ResolveInputPositionForCells(int iStartY, int iEndY, int iStartX, int iEndX, Vector2 vScreenPosition)
 	{
+		Debug.Log("resolve ip for cells from x : ["+iStartX+","+iEndX+"[, y:["+iStartY+ ","+iEndY+"[");
+		float fHalfCellSize = m_fCellSize * m_fScaleFactor * 0.5f;
 		for (int iHeight = iStartY; iHeight < iEndY; ++iHeight)
 		{
 			for (int iWidth = iStartX; iWidth < iEndX; ++iWidth)
@@ -152,9 +154,8 @@ public class GameGrid : MonoBehaviour
 				GameObject objectCell = m_aGridView[iHeight, iWidth];
 				RectTransform t = objectCell.GetComponent<RectTransform>();
 				Vector2 vPos = t.anchoredPosition;
-				float fHalfCellSize = m_fCellSize * m_fScaleFactor * 0.5f;
-				if (vPos.x - fHalfCellSize < vScreenPosition.x && vPos.y + fHalfCellSize > vScreenPosition.y
-					&& vPos.x + fHalfCellSize > vScreenPosition.x && vPos.y - fHalfCellSize < vScreenPosition.y)
+				if (	vPos.x - fHalfCellSize < vScreenPosition.x && vPos.y + fHalfCellSize > vScreenPosition.y
+					&&	vPos.x + fHalfCellSize > vScreenPosition.x && vPos.y - fHalfCellSize < vScreenPosition.y)
 				{
 					Cell newCell = objectCell.GetComponent<Cell>();
 
@@ -262,7 +263,7 @@ public class GameGrid : MonoBehaviour
             {
                 m_aGridView[iHeight, iWidth] = Instantiate(m_cellPrefab, m_CellsContainer.transform);
 				m_aGridView[iHeight, iWidth].GetComponent<RectTransform>().anchoredPosition3D = new Vector3(x + fHalfCellSize, y - fHalfCellSize, 0.0f);
-                m_aGridView[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, fCellSize, this);
+                m_aGridView[iHeight, iWidth].GetComponent<Cell>().Initialize(iWidth, iHeight, fCellSize, this);
 				x += fCellSize + fCellSpacing;
 				m_iUsedCellCounter++;
             }
@@ -356,7 +357,7 @@ public class GameGrid : MonoBehaviour
 			return;
 		}
 
-		Debug.Log("cell hovered : " + cell);
+		Debug.Log("cell hovered : " + cell + ": "+cell.GetCoordinates());
 
 		//
 		// Unselect cell and select new one
