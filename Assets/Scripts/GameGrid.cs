@@ -153,6 +153,12 @@ public class GameGrid : MonoBehaviour
 		return false;
 	}
 
+	public Vector2 GetSize()
+	{
+		float fFactor = m_fScaleFactor * (m_fCellSize + m_fCellSpacing);
+		return new Vector2(m_iWidth * fFactor - m_fCellSpacing * m_fScaleFactor, m_iHeight * fFactor - m_fCellSpacing * m_fScaleFactor);
+	}
+
 	void Start()
     {
         //
