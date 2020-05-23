@@ -29,12 +29,21 @@ public class CameraInputsHandler : InputsHandler
 
 	//
 	// Panning
-	private Vector3 m_vPosInitCamera;
-	private Vector3 m_vPosInitCameraWorld;
-	private Vector2 m_vPanningPos;
-	private Vector2 m_vPanningRectSize;
+	private bool m_bPanningPossible;
+	private Vector3 m_vPosInitCamera = new Vector2(0.0f, 0.0f);
+	private Vector3 m_vPosInitCameraWorld = new Vector2(0.0f, 0.0f);
+	private Vector2 m_vPanningPos = new Vector2(0.0f, 0.0f);
+	private Vector2 m_vPanningRectSize = new Vector2(0.0f, 0.0f);
 	private Vector2 m_vPanningBoundsTopLeft = new Vector2(0.0f, 0.0f);
 	private Vector2 m_vPanningBoundsBottomRight = new Vector2(0.0f, 0.0f);
+
+	private void UpdatePanningPossibility()
+	{
+		m_bPanningPossible =		m_vPanningBoundsTopLeft.x < m_vPanningPos.x - m_vPanningRectSize.x * 0.5f
+								&&	m_vPanningBoundsTopLeft.y > m_vPanningPos.y + m_vPanningRectSize.y * 0.5f
+								&&	m_vPanningBoundsBottomRight.x > m_vPanningPos.x + m_vPanningRectSize.x * 0.5f
+								&& m_vPanningBoundsBottomRight.y < m_vPanningPos.y - m_vPanningRectSize.y * 0.5f;
+	}
 
 	public void SetGameGrid(GameGrid gameGrid)
 	{
@@ -47,6 +56,10 @@ public class CameraInputsHandler : InputsHandler
 		m_vPanningBoundsBottomRight += new Vector2(vGridSize.x * 0.5f, -vGridSize.y * 0.5f);
 		m_vPanningBoundsTopLeft += new Vector2(-m_fPanningBoundsEdgeSpace, m_fPanningBoundsEdgeSpace);
 		m_vPanningBoundsBottomRight += new Vector2(m_fPanningBoundsEdgeSpace, -m_fPanningBoundsEdgeSpace);
+
+		//
+		// Update panning possibility
+		UpdatePanningPossibility();
 	}
 
 	public void SetCameraGame(Camera camera)
@@ -59,10 +72,14 @@ public class CameraInputsHandler : InputsHandler
 		// Compute panning bounds - part 2
 		m_vPanningPos = new Vector2(0.0f, 0.0f);
 		m_vPanningRectSize = new Vector2(m_CameraGame.orthographicSize, m_CameraGame.orthographicSize);
-		m_vPanningBoundsTopLeft.x += m_vPanningBoundsTopLeft.x + m_vPanningRectSize.x;
-		m_vPanningBoundsTopLeft.y += m_vPanningBoundsTopLeft.y - m_vPanningRectSize.y;
-		m_vPanningBoundsBottomRight.x += m_vPanningBoundsBottomRight.x - m_vPanningRectSize.x;
-		m_vPanningBoundsBottomRight.y += m_vPanningBoundsBottomRight.y + m_vPanningRectSize.y;
+		m_vPanningBoundsTopLeft.x += m_vPanningRectSize.x;
+		m_vPanningBoundsTopLeft.y += -m_vPanningRectSize.y;
+		m_vPanningBoundsBottomRight.x += -m_vPanningRectSize.x;
+		m_vPanningBoundsBottomRight.y += m_vPanningRectSize.y;
+
+		//
+		// Update panning possibility
+		UpdatePanningPossibility();
 	}
 
 	public void SetCanvasGUIPanelCameraInputs(GameObject panelCameraInputs)
@@ -71,7 +88,18 @@ public class CameraInputsHandler : InputsHandler
 
 		//
 		// Compute panning bounds - part 3
-		m_vPanningBoundsBottomRight.y += -m_CanvasGUIPanelCameraInputs.GetComponent<RectTransform>().rect.height;
+		float fPanelOffset = -m_CanvasGUIPanelCameraInputs.GetComponent<RectTransform>().rect.height;
+		m_vPanningBoundsBottomRight.y += fPanelOffset;
+
+		//
+		// Initial panning
+		m_vPanningPos.y += fPanelOffset * 0.5f;
+		m_CameraGame.transform.localPosition = new Vector3(
+													m_vPosInitCamera.x + m_vPanningPos.x,
+													m_vPosInitCamera.y + m_vPanningPos.y,
+													m_CameraGame.transform.localPosition.z);
+
+		UpdatePanningPossibility();
 	}
 
 	private void Update()
@@ -117,7 +145,7 @@ public class CameraInputsHandler : InputsHandler
 			{
 
 			}
-			else // Panning
+			else if(m_bPanningPossible) // Panning
 			{
 				Vector2 vDeltaPanningPos = m_vPanningPos + vDelta * m_fPanningFactor;
 
