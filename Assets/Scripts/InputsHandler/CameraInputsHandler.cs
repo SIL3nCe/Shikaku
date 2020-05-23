@@ -42,7 +42,7 @@ public class CameraInputsHandler : InputsHandler
 		m_bPanningPossible =		m_vPanningBoundsTopLeft.x < m_vPanningPos.x - m_vPanningRectSize.x * 0.5f
 								&&	m_vPanningBoundsTopLeft.y > m_vPanningPos.y + m_vPanningRectSize.y * 0.5f
 								&&	m_vPanningBoundsBottomRight.x > m_vPanningPos.x + m_vPanningRectSize.x * 0.5f
-								&& m_vPanningBoundsBottomRight.y < m_vPanningPos.y - m_vPanningRectSize.y * 0.5f;
+								&&	m_vPanningBoundsBottomRight.y < m_vPanningPos.y - m_vPanningRectSize.y * 0.5f;
 	}
 
 	public void SetGameGrid(GameGrid gameGrid)
