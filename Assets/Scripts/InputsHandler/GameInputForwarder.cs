@@ -44,12 +44,12 @@ public class GameInputForwarder : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
+		RectTransform rectTransform = GetComponent<RectTransform>();
+		Vector2 vScreenPosition;
+		RectTransformUtility.ScreenPointToLocalPointInRectangle(m_CanvasGUI.transform as RectTransform, Input.mousePosition, m_CanvasGUI.worldCamera, out vScreenPosition);
+
 		if (IsInputTriggered())
 		{
-			RectTransform rectTransform = GetComponent<RectTransform>();
-			Vector2 vScreenPosition;
-			RectTransformUtility.ScreenPointToLocalPointInRectangle(m_CanvasGUI.transform as RectTransform, Input.mousePosition, m_CanvasGUI.worldCamera, out vScreenPosition);
-
 			//
 			// Beware, coordinate system is x+ towards left and y+ towards up
 			if (null == m_currentInputHandler)
@@ -80,7 +80,7 @@ public class GameInputForwarder : MonoBehaviour
 		}
 		else if (null != m_currentInputHandler)
 		{
-			m_currentInputHandler.InputsStopped();
+			m_currentInputHandler.InputsStopped(vScreenPosition);
 			m_currentInputHandler = null;
 		}
 	}
