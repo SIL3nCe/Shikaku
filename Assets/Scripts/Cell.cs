@@ -27,17 +27,6 @@ public class Cell : MonoBehaviour
         gridObject = grid;
     }
 
-    public void OnMouseEnter()
-    {
-        bHasMouseOnIt = true;
-        gridObject.OnCellHovered(this);
-    }
-
-	public void OnMouseExit()
-    {
-        bHasMouseOnIt = false;
-    }
-
     public bool IsInArea()
     {
         return areaId >= 0;

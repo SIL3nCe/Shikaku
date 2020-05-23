@@ -12,7 +12,6 @@ public class GameGrid : MonoBehaviour
     private float m_fCellSize = 1.0f;
     public float m_fCellSpacing = 0.08f;
 
-
     // Height = i (y), Width = j (x)
     private GameObject[,] m_aGridView;
 	private Vector2 m_vTopLeft;
@@ -42,7 +41,6 @@ public class GameGrid : MonoBehaviour
     private Vector2Int m_vCellEnd;
 
     private List<Cell> m_aSelectedCells;
-    // -
 
     // Selected area visual
     public Sprite m_AreaSelectionRectangle;
@@ -53,111 +51,6 @@ public class GameGrid : MonoBehaviour
 	private List<GameObject> m_aValidatedAreas;
 
     private Resolver m_resolver;
-
-	public void UpdateScale(float fScale)
-	{
-		for (int iHeight = 0; iHeight < m_iHeight; ++iHeight)
-		{
-			for (int iWidth = 0; iWidth < m_iWidth; ++iWidth)
-			{
-				Vector3 vPos = m_aGridView[iHeight, iWidth].GetComponent<RectTransform>().anchoredPosition3D;
-				m_aGridView[iHeight, iWidth].GetComponent<RectTransform>().anchoredPosition3D = new Vector3(fScale * vPos.x / m_fScaleFactor, fScale * vPos.y / m_fScaleFactor, 0.0f);
-				m_aGridView[iHeight, iWidth].GetComponent<Cell>().gameObject.transform.localScale = new Vector3(fScale, fScale, 1);
-			}
-		}
-
-		//
-		// Validates areas
-		foreach(GameObject area in m_aValidatedAreas)
-		{
-			Image image = area.GetComponent<Image>();
-			if(image)
-			{
-				//image.rectTransform.sizeDelta = new
-				image.rectTransform.anchoredPosition3D = new Vector3(fScale * image.rectTransform.anchoredPosition.x / m_fScaleFactor, fScale * image.rectTransform.anchoredPosition.y / m_fScaleFactor, 0.0f);
-				image.gameObject.transform.localScale = new Vector3(fScale, fScale, 1.0f);
-			}
-		}
-
-		//
-		// Update scale
-		m_fScaleFactor = fScale;
-	}
-
-	public void UpdateInputPosition(Vector2 vScreenPosition)
-	{
-		//
-		// Inside grid bounds
-		if(!(vScreenPosition.x < m_vTopLeft.x || vScreenPosition.x > m_vTopLeft.x + m_iWidth || vScreenPosition.y > m_vTopLeft.y || vScreenPosition.y < m_vTopLeft.y - m_iHeight))
-		{
-			m_bInputInsideGrid = true;
-
-			//
-			// If coming from outside, look for hovered cell
-			if (null == m_cellHovered && null == m_cellLastHovered)
-			{
-				ResolveInputPositionForCells(0, m_iHeight, 0, m_iWidth, vScreenPosition);
-			}
-			else
-			{
-				//
-				// Otherwise check if hovered cell changed using neighbourhood
-				int iYM = Mathf.Max(0, m_cellLastHovered.GetCoordinates().y - 1);
-				int iYP = Mathf.Min(m_iHeight, m_cellLastHovered.GetCoordinates().y + 2);
-				int iXM = Mathf.Max(0, m_cellLastHovered.GetCoordinates().x - 1);
-				int iXP = Mathf.Min(m_iWidth, m_cellLastHovered.GetCoordinates().x + 2);
-				if(!ResolveInputPositionForCells(iYM, iYP, iXM, iXP, vScreenPosition))
-				{
-					//
-					// Fallback
-					if(!ResolveInputPositionForCells(0, m_iHeight, 0, m_iWidth, vScreenPosition))
-					{
-						OnCurrentCellUnhovered();
-					}
-				}
-			}
-		}
-	}
-
-	public void InputsStopped()
-	{
-		m_bInputInsideGrid = false;
-
-		OnCurrentCellUnhovered();
-		m_cellLastHovered = null;
-	}
-
-	private bool ResolveInputPositionForCells(int iStartY, int iEndY, int iStartX, int iEndX, Vector2 vScreenPosition)
-	{
-		float fHalfCellSize = m_fCellSize * m_fScaleFactor * 0.5f;
-		for (int iHeight = iStartY; iHeight < iEndY; ++iHeight)
-		{
-			for (int iWidth = iStartX; iWidth < iEndX; ++iWidth)
-			{
-				GameObject objectCell = m_aGridView[iHeight, iWidth];
-				RectTransform t = objectCell.GetComponent<RectTransform>();
-				Vector2 vPos = t.anchoredPosition;
-				if (	vPos.x - fHalfCellSize < vScreenPosition.x && vPos.y + fHalfCellSize > vScreenPosition.y
-					&&	vPos.x + fHalfCellSize > vScreenPosition.x && vPos.y - fHalfCellSize < vScreenPosition.y)
-				{
-					Cell newCell = objectCell.GetComponent<Cell>();
-
-					//
-					// Select new cell
-					OnCellHovered(newCell);
-
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	public Vector2 GetSize()
-	{
-		float fFactor = m_fScaleFactor * (m_fCellSize + m_fCellSpacing);
-		return new Vector2(m_iWidth * fFactor - m_fCellSpacing * m_fScaleFactor, m_iHeight * fFactor - m_fCellSpacing * m_fScaleFactor);
-	}
 
 	void Start()
     {
@@ -252,7 +145,7 @@ public class GameGrid : MonoBehaviour
             {
                 m_aGridView[iHeight, iWidth] = Instantiate(m_cellPrefab, m_CellsContainer.transform);
 				m_aGridView[iHeight, iWidth].GetComponent<RectTransform>().anchoredPosition3D = new Vector3(x + fHalfCellSize, y - fHalfCellSize, 0.0f);
-                m_aGridView[iHeight, iWidth].GetComponent<Cell>().Initialize(iWidth, iHeight, fCellSize, this);
+                m_aGridView[iHeight, iWidth].GetComponent<Cell>().Initialize(iHeight, iWidth, fCellSize, this);
 				x += fCellSize + fCellSpacing;
 				m_iUsedCellCounter++;
             }
@@ -268,20 +161,19 @@ public class GameGrid : MonoBehaviour
             m_aGridView[area.x, area.y].GetComponent<Cell>().SetAreaSize(area.value);
             
             // Create Image rectangle for each origin
-            GameObject NewObj = new GameObject();
-            Image NewImage = NewObj.AddComponent<Image>();
+            GameObject SelecRect = new GameObject();
+            Image NewImage = SelecRect.AddComponent<Image>();
             NewImage.sprite = m_AreaSelectionRectangle;
             NewImage.rectTransform.pivot = new Vector2(0.0f, 1.0f);
-            NewImage.enabled = false; // Hide it for now
-            //NewImage.transform.localScale = new Vector3(8.0f, -8.0f, 1.0f); // Negative on height because we always drawing from top left
             NewImage.type = Image.Type.Sliced;
             NewImage.fillCenter = false;
-			NewImage.pixelsPerUnitMultiplier = 0.15f * m_fScaleFactor;
+			NewImage.pixelsPerUnitMultiplier = 10.0f;
 
-			NewObj.GetComponent<RectTransform>().SetParent(m_RectsContainer.transform); //Assign the newly created Image GameObject as a Child of the Parent Panel.
-            NewObj.SetActive(true);
+            SelecRect.GetComponent<RectTransform>().SetParent(m_RectsContainer.transform); //Assign the newly created Image GameObject as a Child of the Parent Panel.
+            SelecRect.GetComponent<RectTransform>().anchoredPosition3D = Vector3.zero;
+            SelecRect.SetActive(false);
 
-            m_aValidatedAreas.Add(NewObj);
+            m_aValidatedAreas.Add(SelecRect);
         }
 
         m_bGridEnded = false;
@@ -338,7 +230,76 @@ public class GameGrid : MonoBehaviour
         
         return false;
     }
-    
+
+    public void UpdateInputPosition(Vector2 vScreenPosition)
+    {
+        //
+        // Inside grid bounds
+        if (!(vScreenPosition.x < m_vTopLeft.x || vScreenPosition.x > m_vTopLeft.x + m_iWidth || vScreenPosition.y > m_vTopLeft.y || vScreenPosition.y < m_vTopLeft.y - m_iHeight))
+        {
+            m_bInputInsideGrid = true;
+
+            //
+            // If coming from outside, look for hovered cell
+            if (null == m_cellHovered && null == m_cellLastHovered)
+            {
+                ResolveInputPositionForCells(0, m_iHeight, 0, m_iWidth, vScreenPosition);
+            }
+            else
+            {
+                //
+                // Otherwise check if hovered cell changed using neighbourhood
+                int iYM = Mathf.Max(0, m_cellLastHovered.GetCoordinates().y - 1);
+                int iYP = Mathf.Min(m_iHeight, m_cellLastHovered.GetCoordinates().y + 2);
+                int iXM = Mathf.Max(0, m_cellLastHovered.GetCoordinates().x - 1);
+                int iXP = Mathf.Min(m_iWidth, m_cellLastHovered.GetCoordinates().x + 2);
+                if (!ResolveInputPositionForCells(iYM, iYP, iXM, iXP, vScreenPosition))
+                {
+                    //
+                    // Fallback
+                    if (!ResolveInputPositionForCells(0, m_iHeight, 0, m_iWidth, vScreenPosition))
+                    {
+                        OnCurrentCellUnhovered();
+                    }
+                }
+            }
+        }
+    }
+
+    public void InputsStopped()
+    {
+        m_bInputInsideGrid = false;
+
+        OnCurrentCellUnhovered();
+        m_cellLastHovered = null;
+    }
+
+    private bool ResolveInputPositionForCells(int iStartY, int iEndY, int iStartX, int iEndX, Vector2 vScreenPosition)
+    {
+        float fHalfCellSize = m_fCellSize * m_fScaleFactor * 0.5f;
+        for (int iHeight = iStartY; iHeight < iEndY; ++iHeight)
+        {
+            for (int iWidth = iStartX; iWidth < iEndX; ++iWidth)
+            {
+                GameObject objectCell = m_aGridView[iWidth, iHeight];
+                RectTransform t = objectCell.GetComponent<RectTransform>();
+                Vector2 vPos = t.anchoredPosition;
+
+                if (vPos.x - fHalfCellSize < vScreenPosition.x && vPos.y + fHalfCellSize > vScreenPosition.y
+                    && vPos.x + fHalfCellSize > vScreenPosition.x && vPos.y - fHalfCellSize < vScreenPosition.y)
+                {
+                    Cell newCell = objectCell.GetComponent<Cell>();
+
+                    // Select new cell
+                    OnCellHovered(newCell);
+
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public void OnCellHovered(Cell cell)
 	{
 		if (cell == m_cellHovered)
@@ -355,11 +316,11 @@ public class GameGrid : MonoBehaviour
 		m_cellHovered = cell;
 		m_cellLastHovered = cell;
 		
-		m_cellHovered.bHasMouseOnIt = false;
+		m_cellHovered.bHasMouseOnIt = true;
 
 		m_vLastCellEntered = cell.GetCoordinates();
 
-		cell.GetComponent<SpriteRenderer>().color = new Color(1.0f, 0.0f, 0.0f);
+		//cell.GetComponent<SpriteRenderer>().color = new Color(1.0f, 0.0f, 0.0f);
 
 		if (m_bSelection)
         {
@@ -405,7 +366,7 @@ public class GameGrid : MonoBehaviour
 	{
 		if (null != m_cellHovered)
 		{
-			m_cellHovered.GetComponent<SpriteRenderer>().color = new Color(1.0f, 1.0f, 1.0f);
+			//m_cellHovered.GetComponent<SpriteRenderer>().color = new Color(1.0f, 1.0f, 1.0f);
 			m_cellHovered.bHasMouseOnIt = false;
 			m_cellHovered = null;
 		}
@@ -441,7 +402,7 @@ public class GameGrid : MonoBehaviour
                 }
             }
 
-            m_aValidatedAreas[lastEnteredAreaId].GetComponent<Image>().enabled = false;
+            m_aValidatedAreas[lastEnteredAreaId].SetActive(false);
 
             return false;
         }
@@ -508,19 +469,21 @@ public class GameGrid : MonoBehaviour
                 m_iUsedCellCounter--;
             }
 
+            m_aValidatedAreas[areaId].SetActive(true);
             Image image = m_aValidatedAreas[areaId].GetComponent<Image>();
 
-            //Vector3 vCellLocation = aGridView[vTopLeft.x, vTopLeft.y].transform.position;
-            //vCellLocation.x -= 0.45f;
-            //vCellLocation.y += 0.45f;
-            //image.transform.position = Camera.main.WorldToScreenPoint(vCellLocation);
-            //image.rectTransform.sizeDelta = new Vector2((areaWidthAbs * 8.7f) + (1.6f * (areaWidthAbs - 1)), (areaHeightAbs * 8.7f) + (1.6f * (areaHeightAbs - 1))); // Shitty hardcoded numbers
             image.rectTransform.sizeDelta = new Vector2(iWidth + (iWidth - 1) * m_fCellSpacing, iHeight + (iHeight - 1) * m_fCellSpacing);
-			image.rectTransform.anchoredPosition = new Vector2(
-				m_fScaleFactor * (-(m_iWidth * 0.5f) + cellTopLeft.GetCoordinates().y * (m_fCellSize + m_fCellSpacing)),
-				m_fScaleFactor * ((m_iHeight * 0.5f) - cellTopLeft.GetCoordinates().x * (m_fCellSize + m_fCellSpacing)));
-			image.color = Color.black;
-            image.enabled = true;
+            //image.rectTransform.anchoredPosition = new Vector2(
+            //	m_fScaleFactor * (-(m_iWidth * 0.5f) + vSelectionTopLeft.y * (m_fCellSize + m_fCellSpacing)),
+            //	m_fScaleFactor * ((m_iHeight * 0.5f) - vSelectionTopLeft.x * (m_fCellSize + m_fCellSpacing)));
+
+            float fHalfCellSize = m_fCellSize * m_fScaleFactor * 0.5f;
+            Vector2 vTopLeftTopLeft = cellTopLeft.GetComponent<RectTransform>().anchoredPosition3D;
+            vTopLeftTopLeft.x -= fHalfCellSize;
+            vTopLeftTopLeft.y += fHalfCellSize;
+            image.rectTransform.anchoredPosition = vTopLeftTopLeft;
+
+            image.color = Color.black;
 
             m_aGridModel.m_aAreaList[areaId].startX = cellTopLeft.GetCoordinates().x;
             m_aGridModel.m_aAreaList[areaId].startY = cellTopLeft.GetCoordinates().y;
@@ -589,7 +552,6 @@ public class GameGrid : MonoBehaviour
         return nOrigin != 0;
     }
 
-
     private bool CanAreaBeSelected(Vector2Int vTopLeft, int areaWidth, int areaHeight)
     {
         int nCells = areaWidth * areaHeight;
@@ -610,5 +572,40 @@ public class GameGrid : MonoBehaviour
         }
 
         return true;
+    }
+
+    public void UpdateScale(float fScale)
+    {
+        for (int iHeight = 0; iHeight < m_iHeight; ++iHeight)
+        {
+            for (int iWidth = 0; iWidth < m_iWidth; ++iWidth)
+            {
+                Vector3 vPos = m_aGridView[iHeight, iWidth].GetComponent<RectTransform>().anchoredPosition3D;
+                m_aGridView[iHeight, iWidth].GetComponent<RectTransform>().anchoredPosition3D = new Vector3(fScale * vPos.x / m_fScaleFactor, fScale * vPos.y / m_fScaleFactor, 0.0f);
+                m_aGridView[iHeight, iWidth].GetComponent<Cell>().gameObject.transform.localScale = new Vector3(fScale, fScale, 1);
+            }
+        }
+
+        //
+        // Validates areas
+        foreach (GameObject area in m_aValidatedAreas)
+        {
+            Image image = area.GetComponent<Image>();
+            if (image)
+            {
+                image.rectTransform.anchoredPosition3D = new Vector3(fScale * image.rectTransform.anchoredPosition.x / m_fScaleFactor, fScale * image.rectTransform.anchoredPosition.y / m_fScaleFactor, 0.0f);
+                image.gameObject.transform.localScale = new Vector3(fScale, fScale, 1.0f);
+            }
+        }
+
+        //
+        // Update scale
+        m_fScaleFactor = fScale;
+    }
+
+    public Vector2 GetSize()
+    {
+        float fFactor = m_fScaleFactor * (m_fCellSize + m_fCellSpacing);
+        return new Vector2(m_iWidth * fFactor - m_fCellSpacing * m_fScaleFactor, m_iHeight * fFactor - m_fCellSpacing * m_fScaleFactor);
     }
 }
