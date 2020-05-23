@@ -233,7 +233,7 @@ public class GameGrid : MonoBehaviour
 		}
 		else
 		{
-			m_vTopLeft.x = -fHalfCellSize - fHalfCellSpacing - (m_iWidth/2) * fCellSize - (m_iWidth/2 - 1) * fCellSpacing;
+			m_vTopLeft.x = - fHalfCellSpacing - (m_iWidth/2) * fCellSize - (m_iWidth/2 - 1) * fCellSpacing;
 		}
 
 		if (m_iHeight%2 != 0)
@@ -242,7 +242,7 @@ public class GameGrid : MonoBehaviour
 		}
 		else
 		{
-			m_vTopLeft.y = fHalfCellSize + fHalfCellSpacing + (m_iHeight/2) * fCellSize + (m_iWidth/2 - 1) * fCellSpacing;
+			m_vTopLeft.y =  fHalfCellSpacing + (m_iHeight/2) * fCellSize + (m_iWidth/2 - 1) * fCellSpacing;
 		}
 
         float x = m_vTopLeft.x, y = m_vTopLeft.y;
