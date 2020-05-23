@@ -52,8 +52,8 @@ public class CameraInputsHandler : InputsHandler
 		//
 		// Compute panning bounds - part 1
 		Vector2 vGridSize = m_gameGrid.GetSize();
-		m_vPanningBoundsTopLeft += new Vector2(-vGridSize.x * 0.5f, vGridSize.y * 0.5f);
-		m_vPanningBoundsBottomRight += new Vector2(vGridSize.x * 0.5f, -vGridSize.y * 0.5f);
+		m_vPanningBoundsTopLeft += new Vector2(-vGridSize.y * 0.5f, vGridSize.x * 0.5f);
+		m_vPanningBoundsBottomRight += new Vector2(vGridSize.y * 0.5f, -vGridSize.x * 0.5f);
 		m_vPanningBoundsTopLeft += new Vector2(-m_fPanningBoundsEdgeSpace, m_fPanningBoundsEdgeSpace);
 		m_vPanningBoundsBottomRight += new Vector2(m_fPanningBoundsEdgeSpace, -m_fPanningBoundsEdgeSpace);
 
