@@ -281,6 +281,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: CameraGUI
       objectReference: {fileID: 0}
+    - target: {fileID: 2864494599306896857, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
+        type: 3}
+      propertyPath: m_bDebugDrawPanning
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4778592552407195835, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
         type: 3}
       propertyPath: m_CanvasGameInputsHandler
@@ -468,7 +473,7 @@ PrefabInstance:
     - target: {fileID: 7297917554626348417, guid: d127db12c22bb194e955c0a49fa5900b,
         type: 3}
       propertyPath: Difficulty
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7297917554626348418, guid: d127db12c22bb194e955c0a49fa5900b,
         type: 3}
