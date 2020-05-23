@@ -13,54 +13,77 @@ public class CameraInputsHandler : InputsHandler
 	public ECameraZoomType m_eZoomType;
 	public float m_fDistanceStartThreshold = 0.15f;
 	public float m_fPanningFactor = 1.0f;
+	public float m_fPanningBoundsEdgeSpace = 1.0f;
 
 	private bool m_bInputStarted = false;
+	private Vector2 m_vStartPosition;
 	private Vector2 m_vLastPosition;
 	private Vector2 m_vCurrentPosition;
 	private GameGrid m_gameGrid;
 	private Camera m_CameraGame;
+	private GameObject m_CanvasGUIPanelCameraInputs;
 
 	//
 	// Panning
 	private Vector3 m_vPosInitCamera;
 	private Vector2 m_vPanningPos;
 	private Vector2 m_vPanningRectSize;
-	private Vector2 m_vPanningBoundsTopLeft;
-	private Vector2 m_vPanningBoundsBottomRight;
+	private Vector2 m_vPanningBoundsTopLeft = new Vector2(0.0f, 0.0f);
+	private Vector2 m_vPanningBoundsBottomRight = new Vector2(0.0f, 0.0f);
 
 	public void SetGameGrid(GameGrid gameGrid)
 	{
 		m_gameGrid = gameGrid;
+
+		//
+		// Compute panning bounds - part 1
 		Vector2 vGridSize = m_gameGrid.GetSize();
-		m_vPanningBoundsTopLeft = new Vector2(-vGridSize.x * 0.5f, vGridSize.y * 0.5f);
-		m_vPanningBoundsBottomRight = new Vector2(vGridSize.x * 0.5f, -vGridSize.y * 0.5f);
+		m_vPanningBoundsTopLeft += new Vector2(-vGridSize.x * 0.5f, vGridSize.y * 0.5f);
+		m_vPanningBoundsBottomRight += new Vector2(vGridSize.x * 0.5f, -vGridSize.y * 0.5f);
+		m_vPanningBoundsTopLeft += new Vector2(-m_fPanningBoundsEdgeSpace, m_fPanningBoundsEdgeSpace);
+		m_vPanningBoundsBottomRight += new Vector2(m_fPanningBoundsEdgeSpace, -m_fPanningBoundsEdgeSpace);
 	}
 
 	public void SetCameraGame(Camera camera)
 	{
 		m_CameraGame = camera;
 		m_vPosInitCamera = m_CameraGame.transform.localPosition;
+
+		//
+		// Compute panning bounds - part 2
 		m_vPanningPos = new Vector2(0.0f, 0.0f);
 		m_vPanningRectSize = new Vector2(m_CameraGame.orthographicSize, m_CameraGame.orthographicSize);
+		m_vPanningBoundsTopLeft.x += m_vPanningBoundsTopLeft.x + m_vPanningRectSize.x;
+		m_vPanningBoundsTopLeft.y += m_vPanningBoundsTopLeft.y - m_vPanningRectSize.y;
+		m_vPanningBoundsBottomRight.x += m_vPanningBoundsBottomRight.x - m_vPanningRectSize.x;
+		m_vPanningBoundsBottomRight.y += m_vPanningBoundsBottomRight.y + m_vPanningRectSize.y;
+	}
+
+	public void SetCanvasGUIPanelCameraInputs(GameObject panelCameraInputs)
+	{
+		m_CanvasGUIPanelCameraInputs = panelCameraInputs;
+
+		//
+		// Compute panning bounds - part 3
+		m_vPanningBoundsBottomRight.y += -m_CanvasGUIPanelCameraInputs.GetComponent<RectTransform>().rect.height;
 	}
 
 	public override void HandleInputs(Vector2 vScreenPosition)
 	{
+		m_vLastPosition = new Vector2(m_vCurrentPosition.x, m_vCurrentPosition.y);
+		m_vCurrentPosition = new Vector2(vScreenPosition.x, vScreenPosition.y);
+
 		if(!m_bInputStarted)
 		{
 			m_bInputStarted = true;
-			m_vLastPosition = new Vector2(vScreenPosition.x, vScreenPosition.y);
+			m_vStartPosition = new Vector2(vScreenPosition.x, vScreenPosition.y);
+			m_vCurrentPosition = new Vector2(m_vStartPosition.x, m_vStartPosition.y);
+			m_vLastPosition = new Vector2(m_vCurrentPosition.x, m_vCurrentPosition.y);
 		}
-		else
-		{
-			m_vLastPosition = m_vCurrentPosition;
-		}
-		m_vCurrentPosition = new Vector2(vScreenPosition.x, vScreenPosition.y);
 
 		//
 		// Panning or pinch zooming
 		Vector2 vDelta = m_vCurrentPosition - m_vLastPosition;
-		Debug.Log("vDelta: " + vDelta);
 		if (vDelta.magnitude > m_fDistanceStartThreshold)
 		{
 			//
@@ -75,16 +98,24 @@ public class CameraInputsHandler : InputsHandler
 
 				//
 				// Panning horizontal
-				if (vDeltaPanningPos.x > m_vPanningBoundsTopLeft.x && vDeltaPanningPos.x < m_vPanningBoundsBottomRight.x)
+				if (vDelta.x < 0)
 				{
-					m_vPanningPos.x = vDeltaPanningPos.x;
+					m_vPanningPos.x = Mathf.Max(m_vPanningBoundsTopLeft.x, vDeltaPanningPos.x);
+				}
+				else if (vDelta.x > 0)
+				{
+					m_vPanningPos.x = Mathf.Min(m_vPanningBoundsBottomRight.x, vDeltaPanningPos.x);
 				}
 
 				//
 				// Panning vertical
-				if (vDeltaPanningPos.y < m_vPanningBoundsTopLeft.y && vDeltaPanningPos.y > m_vPanningBoundsBottomRight.y)
+				if (vDelta.y > 0)
 				{
-					m_vPanningPos.y = vDeltaPanningPos.y;
+					m_vPanningPos.y = Mathf.Min(m_vPanningBoundsTopLeft.y, vDeltaPanningPos.y);
+				}
+				else if (vDelta.y < 0)
+				{
+					m_vPanningPos.y = Mathf.Max(m_vPanningBoundsBottomRight.y, vDeltaPanningPos.y);
 				}
 
 				//

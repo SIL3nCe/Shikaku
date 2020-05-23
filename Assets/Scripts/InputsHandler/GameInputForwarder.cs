@@ -4,12 +4,11 @@ using UnityEngine;
 
 public class GameInputForwarder : MonoBehaviour
 {
-	public GameObject m_PanelCameraInputs;
-
 	public CameraInputsHandler m_CameraInputsHandler;
 	public CanvasGameInputsHandler m_CanvasGameInputsHandler;
 
 	public Canvas m_CanvasGUI;
+	public GameObject m_PanelCameraInputs;
 	public Canvas m_CanvasGame;
 
 	public Camera m_CameraGame;
@@ -34,6 +33,7 @@ public class GameInputForwarder : MonoBehaviour
 		m_CanvasGameInputsHandler.SetCanvasGUI(m_CanvasGUI);
 		m_CameraInputsHandler.SetCameraGame(m_CameraGame);
 		m_CameraInputsHandler.SetGameGrid(m_GameGrid);
+		m_CameraInputsHandler.SetCanvasGUIPanelCameraInputs(m_PanelCameraInputs);
 	}
 
 	bool IsInputTriggered()
@@ -52,12 +52,12 @@ public class GameInputForwarder : MonoBehaviour
 
 			//
 			// Beware, coordinate system is x+ towards left and y+ towards up
-			if (	vScreenPosition.x > -rectTransform.rect.width * 0.5f
-				&&	vScreenPosition.x < rectTransform.rect.width * 0.5f
-				&&	vScreenPosition.y > -rectTransform.rect.height * 0.5f
-				&&	vScreenPosition.y < rectTransform.rect.height * 0.5f)
+			if (null == m_currentInputHandler)
 			{
-				if (null == m_currentInputHandler)
+				if (	vScreenPosition.x > -rectTransform.rect.width * 0.5f
+					&&	vScreenPosition.x < rectTransform.rect.width * 0.5f
+					&&	vScreenPosition.y > -rectTransform.rect.height * 0.5f
+					&&	vScreenPosition.y < rectTransform.rect.height * 0.5f)
 				{
 					//
 					// Camera inputs first
@@ -71,16 +71,11 @@ public class GameInputForwarder : MonoBehaviour
 						m_currentInputHandler = m_CanvasGameInputsHandler;
 					}
 				}
-
-				if (null != m_currentInputHandler)
-				{
-					m_currentInputHandler.HandleInputs(vScreenPosition);
-				}
 			}
-			else if (null != m_currentInputHandler)
+
+			if (null != m_currentInputHandler)
 			{
-				m_currentInputHandler.InputsStopped();
-				m_currentInputHandler = null;
+				m_currentInputHandler.HandleInputs(vScreenPosition);
 			}
 		}
 		else if (null != m_currentInputHandler)

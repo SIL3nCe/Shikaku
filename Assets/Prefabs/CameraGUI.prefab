@@ -341,10 +341,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b5bddf79a8db2f47b9db88e43e11ff7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_PanelCameraInputs: {fileID: 322497937248015122}
   m_CameraInputsHandler: {fileID: 2864494599306896857}
   m_CanvasGameInputsHandler: {fileID: 0}
-  m_CanvasGUI: {fileID: 0}
+  m_CanvasGUI: {fileID: 322497937486868801}
+  m_PanelCameraInputs: {fileID: 322497937248015122}
   m_CanvasGame: {fileID: 0}
   m_CameraGame: {fileID: 0}
   m_GameGrid: {fileID: 0}
@@ -363,3 +363,4 @@ MonoBehaviour:
   m_eZoomType: 0
   m_fDistanceStartThreshold: 0.15
   m_fPanningFactor: 2
+  m_fPanningBoundsEdgeSpace: 0.5

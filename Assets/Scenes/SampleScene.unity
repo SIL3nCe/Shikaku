@@ -120,12 +120,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!223 &411120208 stripped
-Canvas:
-  m_CorrespondingSourceObject: {fileID: 322497937486868801, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
-    type: 3}
-  m_PrefabInstance: {fileID: 322497936463060476}
-  m_PrefabAsset: {fileID: 0}
 --- !u!20 &519420031 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 7113791229326882066, guid: f9f0bf94ea425ad41a3315dcca97c232,
@@ -297,11 +291,6 @@ PrefabInstance:
       propertyPath: m_canvasGame
       value: 
       objectReference: {fileID: 2119115073}
-    - target: {fileID: 4778592552407195835, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
-        type: 3}
-      propertyPath: m_CanvasGUI
-      value: 
-      objectReference: {fileID: 411120208}
     - target: {fileID: 4778592552407195835, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
         type: 3}
       propertyPath: m_CanvasGame
