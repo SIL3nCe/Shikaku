@@ -32,24 +32,42 @@ public class GameInputForwarder : MonoBehaviour
 		m_CanvasGameInputsHandler.SetCanvasGame(m_CanvasGame);
 		m_CanvasGameInputsHandler.SetCanvasGUI(m_CanvasGUI);
 		m_CameraInputsHandler.SetCameraGame(m_CameraGame);
+		m_CameraInputsHandler.SetCanvasGUI(m_CanvasGUI);
 		m_CameraInputsHandler.SetGameGrid(m_GameGrid);
 		m_CameraInputsHandler.SetCanvasGUIPanelCameraInputs(m_PanelCameraInputs);
 	}
 
-	bool IsInputTriggered()
+	bool IsInputTriggered(ref Vector2 vScreenPosition)
 	{
+#if UNITY_STANDALONE
+		vScreenPosition = Input.mousePosition;
 		return Input.GetMouseButton(0);
+#elif UNITY_ANDROID
+		if(Input.touchCount > 0)
+		{
+			for(int iTouchIndex = 0; iTouchIndex < Input.touchCount; ++iTouchIndex)
+			{
+				Touch touch = Input.GetTouch(iTouchIndex);
+				if (0 == touch.fingerId)
+				{
+					vScreenPosition = touch.position;
+					return true;
+				}
+			}
+		}
+		return false;
+#endif // UNITY_STANDALONE
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
-		RectTransform rectTransform = GetComponent<RectTransform>();
-		Vector2 vScreenPosition;
-		RectTransformUtility.ScreenPointToLocalPointInRectangle(m_CanvasGUI.transform as RectTransform, Input.mousePosition, m_CanvasGUI.worldCamera, out vScreenPosition);
-
-		if (IsInputTriggered())
+		Vector2 vScreenPosition = new Vector2();
+		if (IsInputTriggered(ref vScreenPosition))
 		{
+			RectTransform rectTransform = m_CanvasGUI.GetComponent<RectTransform>();
+			RectTransformUtility.ScreenPointToLocalPointInRectangle(m_CanvasGUI.transform as RectTransform, vScreenPosition, m_CanvasGUI.worldCamera, out vScreenPosition);
+
 			//
 			// Beware, coordinate system is x+ towards left and y+ towards up
 			if (null == m_currentInputHandler)
@@ -80,7 +98,7 @@ public class GameInputForwarder : MonoBehaviour
 		}
 		else if (null != m_currentInputHandler)
 		{
-			m_currentInputHandler.InputsStopped(vScreenPosition);
+			m_currentInputHandler.InputsStopped();
 			m_currentInputHandler = null;
 		}
 	}

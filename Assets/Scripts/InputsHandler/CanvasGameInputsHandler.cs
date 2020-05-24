@@ -29,7 +29,7 @@ public class CanvasGameInputsHandler : InputsHandler
 		m_GameGrid.UpdateInputPosition(vNewScreenPosition);
 	}
 
-	public override void InputsStopped(Vector2 vScreenPosition)
+	public override void InputsStopped()
 	{
 		m_GameGrid.InputsStopped();
 	}

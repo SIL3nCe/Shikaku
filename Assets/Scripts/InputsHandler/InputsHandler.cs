@@ -6,5 +6,5 @@ public abstract class InputsHandler : MonoBehaviour
 {
 	public abstract void HandleInputs(Vector2 vScreenPosition);
 
-	public abstract void InputsStopped(Vector2 vScreenPosition);
+	public abstract void InputsStopped();
 }

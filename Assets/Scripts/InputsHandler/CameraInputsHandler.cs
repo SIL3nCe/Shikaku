@@ -25,6 +25,7 @@ public class CameraInputsHandler : InputsHandler
 	private Vector2 m_vCurrentPosition;
 	private GameGrid m_gameGrid;
 	private Camera m_CameraGame;
+	private Canvas m_CanvasGUI;
 	private GameObject m_CanvasGUIPanelCameraInputs;
 
 	//
@@ -43,6 +44,16 @@ public class CameraInputsHandler : InputsHandler
 	// Zooming
 	private float m_fZoomRatio = 1.0f;
 	public float m_fZoomMaxRatio = 3.0f;
+
+	//
+	// Pinch Zooming
+	private bool m_bZoomPinchStarted = false;
+	private float m_fZoomPinchInitialDistance;
+	private float m_fZoomPinchRatioInit;
+	public float m_fZoomPinchRatio = 0.5f;
+
+	//
+	// Tap Zooming
 	public int m_iZoomTapLevels = 3;
 	private int m_iZoomTapCurrentLevel = 0;
 	private float m_fZoomTapRatioStep;
@@ -85,6 +96,11 @@ public class CameraInputsHandler : InputsHandler
 		//
 		// Compute panning bounds - part 2
 		SetPanningRectSize(new Vector2(m_CameraGame.orthographicSize, m_CameraGame.orthographicSize));
+	}
+
+	public void SetCanvasGUI(Canvas canvas)
+	{
+		m_CanvasGUI = canvas;
 	}
 
 	public void SetCanvasGUIPanelCameraInputs(GameObject panelCameraInputs)
@@ -244,28 +260,6 @@ public class CameraInputsHandler : InputsHandler
 			m_vStartPosition = new Vector2(vScreenPosition.x, vScreenPosition.y);
 			m_vCurrentPosition = new Vector2(m_vStartPosition.x, m_vStartPosition.y);
 			m_vLastPosition = new Vector2(m_vCurrentPosition.x, m_vCurrentPosition.y);
-
-			//
-			// Tap-zooming
-			if (!m_bZoomTapFirstInput)
-			{
-				m_bZoomTapFirstInput = true;
-				m_fZoomTapFirstInputTimestamp = Time.time;
-			}
-			else
-			{
-				m_bZoomTapSecondInput = true;
-			}
-		}
-		else
-		{
-			//
-			// Tap-zooming
-			if(Vector2.Distance(m_vCurrentPosition, m_vLastPosition) >= m_fDistanceStartThreshold)
-			{
-				m_bZoomTapFirstInput = false;
-				m_bZoomTapSecondInput = false;
-			}
 		}
 
 		//
@@ -274,12 +268,29 @@ public class CameraInputsHandler : InputsHandler
 		if (vDelta.magnitude > m_fDistanceStartThreshold)
 		{
 			//
-			// Zooming
-			if (IsSecondInputTriggered())
+			// Pinch-zooming
+			Vector2 vScreenPositionSecondInput = new Vector2();
+			if (IsSecondInputTriggered(ref vScreenPositionSecondInput))
 			{
+				RectTransform rectTransform = m_CanvasGUI.GetComponent<RectTransform>();
+				RectTransformUtility.ScreenPointToLocalPointInRectangle(m_CanvasGUI.transform as RectTransform, vScreenPositionSecondInput, m_CanvasGUI.worldCamera, out vScreenPositionSecondInput);
 
+				if (!m_bZoomPinchStarted)
+				{
+					m_bZoomPinchStarted = true;
+					m_fZoomPinchRatioInit = m_fZoomRatio;
+					m_fZoomPinchInitialDistance = Vector3.Distance(m_vStartPosition, vScreenPositionSecondInput);
+				}
+
+				//
+				// Proportionnality between start state and current one
+				float fPinchDistance = Vector3.Distance(m_vStartPosition, vScreenPositionSecondInput);
+				float fZoomRatioNew = m_fZoomPinchRatioInit * fPinchDistance / m_fZoomPinchInitialDistance;
+				float fZoomRatioFactored = m_fZoomPinchRatio * fZoomRatioNew;
+				float fZoomRatioFinal = Mathf.Max(1.0f, Mathf.Min(m_fZoomMaxRatio, fZoomRatioFactored));
+				SetZoomRatio(fZoomRatioFinal);
 			}
-			else if(m_bPanningPossible) // Panning
+			else if(!m_bZoomPinchStarted && m_bPanningPossible) // Panning
 			{
 				Vector2 vDeltaPanningPos = m_vPanningPos + vDelta * m_fPanningFactor;
 
@@ -312,30 +323,60 @@ public class CameraInputsHandler : InputsHandler
 		}
 	}
 
-	private bool IsSecondInputTriggered()
+	private bool IsSecondInputTriggered(ref Vector2 vScreenPosition)
 	{
+#if UNITY_STANDALONE
+		vScreenPosition = Input.mousePosition;
 		return Input.GetMouseButton(1);
+#elif UNITY_ANDROID
+		if(Input.touchCount > 0)
+		{
+			for(int iTouchIndex = 0; iTouchIndex < Input.touchCount; ++iTouchIndex)
+			{
+				Touch touch = Input.GetTouch(iTouchIndex);
+				if (1 == touch.fingerId)
+				{
+					vScreenPosition = touch.position;
+					return true;
+				}
+			}
+		}
+		return false;
+#endif // UNITY_STANDALONE
 	}
 
-	public override void InputsStopped(Vector2 vScreenPosition)
+	public override void InputsStopped()
 	{
 		m_bInputStarted = false;
+		
+		//
+		// Pinch-zooming
+		m_bZoomPinchStarted = false;
 
 		//
-		// Tap-zooming 
-		if(m_bZoomTapFirstInput && !m_bZoomTapSecondInput)
+		// Tap-zooming
+		if (Vector3.Distance(m_vStartPosition, m_vLastPosition) < m_fDistanceStartThreshold)
 		{
-			m_fZoomTapFirstInputTimestamp = Time.time;
-		}
-		else if(m_bZoomTapFirstInput && m_bZoomTapSecondInput)
-		{
-			if(m_fZoomTapDoubleInputTimeThreshold > Time.time - m_fZoomTapFirstInputTimestamp)
+			if (!m_bZoomTapFirstInput)
 			{
-				//
-				// Unzoom if double tap is contained in time threshold
-				SetZoomLevel(m_iZoomTapCurrentLevel - 1);
+				m_bZoomTapFirstInput = true;
+				m_fZoomTapFirstInputTimestamp = Time.time;
 			}
+			else if(m_bZoomTapFirstInput)
+			{
+				if(m_fZoomTapDoubleInputTimeThreshold > Time.time - m_fZoomTapFirstInputTimestamp)
+				{
+					//
+					// Unzoom if double tap is contained in time threshold
+					SetZoomLevel(m_iZoomTapCurrentLevel - 1);
+				}
 
+				m_bZoomTapFirstInput = false;
+				m_bZoomTapSecondInput = false;
+			}
+		}
+		else
+		{
 			m_bZoomTapFirstInput = false;
 			m_bZoomTapSecondInput = false;
 		}
