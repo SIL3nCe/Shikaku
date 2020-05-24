@@ -32,9 +32,16 @@ public class Gameplay : MonoBehaviour
 
 		UpdateScale(1.0f);
 
-        gameGrid.Generate(Difficulty);
+        GenerateNewGrid();
 
-		bSelection = false;
+        bSelection = false;
+    }
+
+    private void GenerateNewGrid()
+    {
+        gameGrid.Generate(Difficulty);
+        SaveManager.Stats.aDifficultyStats[(int)Difficulty].generatedGrids++;
+        SaveManager.SaveStats();
     }
 
 	private void UpdateScale(float fScale)

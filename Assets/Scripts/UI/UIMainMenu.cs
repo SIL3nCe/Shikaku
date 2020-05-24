@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class UIMainMenu : MonoBehaviour
 {
@@ -15,6 +16,17 @@ public class UIMainMenu : MonoBehaviour
     public GameObject ButtonMain;
     public GameObject ButtonBack;
 
+    public void Start()
+    {
+        // Init saved datas
+        SaveManager.LoadStats();
+
+        // Write stats in text zone
+        ContentStats.GetComponentInChildren<Text>().text = SaveManager.Stats.GetAsString();
+
+        // In case layout is not well setup in scene
+        OnBackEvent();
+    }
 
     // Play button event
     public void OnPlayEvent(int level)
@@ -42,7 +54,7 @@ public class UIMainMenu : MonoBehaviour
         ContentMain.SetActive(false);
         ButtonMain.SetActive(false);
 
-        //ContentStats.SetActive(true);
+        ContentStats.SetActive(true);
         ButtonBack.SetActive(true);
     }
 
@@ -57,12 +69,18 @@ public class UIMainMenu : MonoBehaviour
 
     public void OnBackEvent()
     {
-        //ContentStats.SetActive(false);
+        ContentStats.SetActive(false);
         ContentHelp.SetActive(false);
         ContentOptions.SetActive(false);
         ButtonBack.SetActive(false);
 
         ContentMain.SetActive(true);
         ButtonMain.SetActive(true);
+    }
+
+    public void ResetStatistics()
+    {
+        SaveManager.ResetStats();
+        ContentStats.GetComponentInChildren<Text>().text = SaveManager.Stats.GetAsString();
     }
 }
