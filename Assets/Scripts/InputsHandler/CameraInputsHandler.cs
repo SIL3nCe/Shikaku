@@ -37,6 +37,7 @@ public class CameraInputsHandler : InputsHandler
 	private Vector2 m_vPanningRectSize = new Vector2(0.0f, 0.0f);
 	private Vector2 m_vPanningBoundsTopLeft = new Vector2(0.0f, 0.0f);
 	private Vector2 m_vPanningBoundsBottomRight = new Vector2(0.0f, 0.0f);
+	private Vector2 m_vPanningOffset = new Vector2(0.0f, 0.0f);
 
 	//
 	// Zooming
@@ -92,13 +93,13 @@ public class CameraInputsHandler : InputsHandler
 
 		//
 		// Compute panning bounds - part 3
-		float fPanelOffset = -m_CanvasGUIPanelCameraInputs.GetComponent<RectTransform>().rect.height;
-		m_vPanningBoundsBottomRight.y += fPanelOffset;
+		m_vPanningOffset.y = -m_CanvasGUIPanelCameraInputs.GetComponent<RectTransform>().rect.height;
+		m_vPanningBoundsBottomRight += m_vPanningOffset;
 
 		//
 		// Initial panning
-		m_vPanningPosInit.y += fPanelOffset * 0.5f;
-		m_vPanningPos.y += fPanelOffset * 0.5f;
+		m_vPanningPosInit.y	+= m_vPanningOffset.y * 0.5f;
+		m_vPanningPos.y		+= m_vPanningOffset.y * 0.5f;
 		ApplyPanningtoCamera();
 
 		UpdatePanningPossibility();
@@ -114,6 +115,7 @@ public class CameraInputsHandler : InputsHandler
 			m_vPanningBoundsBottomRight.y -= m_vPanningRectSize.y;
 
 			m_vPanningRectSize = vRectSize;
+			m_CameraGame.orthographicSize = vRectSize.x;
 
 			m_vPanningBoundsTopLeft.x += m_vPanningRectSize.x;
 			m_vPanningBoundsTopLeft.y += -m_vPanningRectSize.y;
@@ -205,13 +207,16 @@ public class CameraInputsHandler : InputsHandler
 
 			//
 			// Update camera and panning rect size
-			//m_vPanningBoundsBottomRight.y = m_vPanningBoundsBottomRight.y + 0.1f;
-			m_CameraGame.orthographicSize += fDeltaZoomRatio;
-			SetPanningRectSize(new Vector2(m_CameraGame.orthographicSize, m_CameraGame.orthographicSize));
+			m_vPanningBoundsBottomRight.y -= m_vPanningOffset.y;
+			float fNewOrthographicSize = m_CameraGame.orthographicSize + fDeltaZoomRatio;
+			float fPanningOffsetRatioY = m_vPanningOffset.y * fNewOrthographicSize / m_CameraGame.orthographicSize; // proportions because canvas initial size = camera initial orthographic size
+			SetPanningRectSize(new Vector2(fNewOrthographicSize, fNewOrthographicSize));
+			m_vPanningOffset.y = fPanningOffsetRatioY;
+			m_vPanningBoundsBottomRight.y += m_vPanningOffset.y;
 
 			//
 			// Clamp panning position to bottom right if it is already in max panning position
-			if(bUpdatePanningTop || bUpdatePanningRight || bUpdatePanningBottom || bUpdatePanningLeft)
+			if (bUpdatePanningTop || bUpdatePanningRight || bUpdatePanningBottom || bUpdatePanningLeft)
 			{
 				//
 				// Horizontal
@@ -220,8 +225,8 @@ public class CameraInputsHandler : InputsHandler
 
 				//
 				// Vertical
-				if		(bUpdatePanningTop)	{	m_vPanningPos.y = m_vPanningBoundsTopLeft.y;		}
-				else if (bUpdatePanningTop)	{	m_vPanningPos.y = m_vPanningBoundsBottomRight.y;	}
+				if		(bUpdatePanningTop)		{	m_vPanningPos.y = m_vPanningBoundsTopLeft.y;		}
+				else if (bUpdatePanningBottom)	{	m_vPanningPos.y = m_vPanningBoundsBottomRight.y;	}
 
 				ApplyPanningtoCamera();
 			}
