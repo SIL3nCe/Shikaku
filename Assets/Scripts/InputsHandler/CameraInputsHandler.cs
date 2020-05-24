@@ -32,6 +32,7 @@ public class CameraInputsHandler : InputsHandler
 	private bool m_bPanningPossible;
 	private Vector3 m_vPosInitCamera = new Vector2(0.0f, 0.0f);
 	private Vector3 m_vPosInitCameraWorld = new Vector2(0.0f, 0.0f);
+	private Vector2 m_vPanningPosInit = new Vector2(0.0f, 0.0f);
 	private Vector2 m_vPanningPos = new Vector2(0.0f, 0.0f);
 	private Vector2 m_vPanningRectSize = new Vector2(0.0f, 0.0f);
 	private Vector2 m_vPanningBoundsTopLeft = new Vector2(0.0f, 0.0f);
@@ -44,17 +45,17 @@ public class CameraInputsHandler : InputsHandler
 	public int m_iZoomTapLevels = 3;
 	private int m_iZoomTapCurrentLevel = 0;
 	private float m_fZoomTapRatioStep;
-	private float m_fZoomTapDoubleInputTimeThreshold = 0.5f;
+	public float m_fZoomTapDoubleInputTimeThreshold = 0.5f;
 	private bool m_bZoomTapFirstInput = false;
 	private bool m_bZoomTapSecondInput = false;
 	private float m_fZoomTapFirstInputTimestamp;
 
 	private void UpdatePanningPossibility()
 	{
-		m_bPanningPossible =		m_vPanningBoundsTopLeft.x < m_vPanningPos.x - m_vPanningRectSize.x * 0.5f
-								&&	m_vPanningBoundsTopLeft.y > m_vPanningPos.y + m_vPanningRectSize.y * 0.5f
-								&&	m_vPanningBoundsBottomRight.x > m_vPanningPos.x + m_vPanningRectSize.x * 0.5f
-								&&	m_vPanningBoundsBottomRight.y < m_vPanningPos.y - m_vPanningRectSize.y * 0.5f;
+		m_bPanningPossible =		m_vPanningBoundsTopLeft.x < m_vPanningPosInit.x - m_vPanningRectSize.x * 0.5f
+								&&	m_vPanningBoundsTopLeft.y > m_vPanningPosInit.y + m_vPanningRectSize.y * 0.5f
+								&&	m_vPanningBoundsBottomRight.x > m_vPanningPosInit.x + m_vPanningRectSize.x * 0.5f
+								&&	m_vPanningBoundsBottomRight.y < m_vPanningPosInit.y - m_vPanningRectSize.y * 0.5f;
 	}
 
 	public void SetGameGrid(GameGrid gameGrid)
@@ -82,7 +83,6 @@ public class CameraInputsHandler : InputsHandler
 
 		//
 		// Compute panning bounds - part 2
-		m_vPanningPos = new Vector2(0.0f, 0.0f);
 		SetPanningRectSize(new Vector2(m_CameraGame.orthographicSize, m_CameraGame.orthographicSize));
 	}
 
@@ -97,11 +97,9 @@ public class CameraInputsHandler : InputsHandler
 
 		//
 		// Initial panning
+		m_vPanningPosInit.y += fPanelOffset * 0.5f;
 		m_vPanningPos.y += fPanelOffset * 0.5f;
-		m_CameraGame.transform.localPosition = new Vector3(
-													m_vPosInitCamera.x + m_vPanningPos.x,
-													m_vPosInitCamera.y + m_vPanningPos.y,
-													m_CameraGame.transform.localPosition.z);
+		ApplyPanningtoCamera();
 
 		UpdatePanningPossibility();
 	}
@@ -126,6 +124,14 @@ public class CameraInputsHandler : InputsHandler
 			// Update panning possibility
 			UpdatePanningPossibility();
 		}
+	}
+
+	private void ApplyPanningtoCamera()
+	{
+		m_CameraGame.transform.localPosition = new Vector3(
+													m_vPosInitCamera.x + m_vPanningPos.x,
+													m_vPosInitCamera.y + m_vPanningPos.y,
+													m_CameraGame.transform.localPosition.z);
 	}
 
 	private void Start()
@@ -164,6 +170,7 @@ public class CameraInputsHandler : InputsHandler
 			SetZoomLevel(m_iZoomTapCurrentLevel + 1);
 
 			m_bZoomTapFirstInput = false;
+			m_fZoomTapFirstInputTimestamp = 0.0f;
 		}
 	}
 
@@ -184,13 +191,40 @@ public class CameraInputsHandler : InputsHandler
 	{
 		if(!Mathf.Approximately(m_fZoomRatio, fNewZoomRatio))
 		{
+			//
+			// Remove bottom panning with former ratio
+			bool bUpdatePanningTop		= Mathf.Approximately(m_vPanningPos.y, m_vPanningBoundsTopLeft.y);
+			bool bUpdatePanningLeft		= Mathf.Approximately(m_vPanningPos.x, m_vPanningBoundsTopLeft.x);
+			bool bUpdatePanningBottom	= Mathf.Approximately(m_vPanningPos.y, m_vPanningBoundsBottomRight.y);
+			bool bUpdatePanningRight	= Mathf.Approximately(m_vPanningPos.x, m_vPanningBoundsBottomRight.x);
+
+			//
+			// Update ratio
 			float fDeltaZoomRatio = m_fZoomRatio - fNewZoomRatio;
 			m_fZoomRatio = fNewZoomRatio;
 
 			//
 			// Update camera and panning rect size
+			//m_vPanningBoundsBottomRight.y = m_vPanningBoundsBottomRight.y + 0.1f;
 			m_CameraGame.orthographicSize += fDeltaZoomRatio;
 			SetPanningRectSize(new Vector2(m_CameraGame.orthographicSize, m_CameraGame.orthographicSize));
+
+			//
+			// Clamp panning position to bottom right if it is already in max panning position
+			if(bUpdatePanningTop || bUpdatePanningRight || bUpdatePanningBottom || bUpdatePanningLeft)
+			{
+				//
+				// Horizontal
+				if		(bUpdatePanningLeft)	{	m_vPanningPos.x = m_vPanningBoundsTopLeft.x;		}
+				else if (bUpdatePanningRight)	{	m_vPanningPos.x = m_vPanningBoundsBottomRight.x;	}
+
+				//
+				// Vertical
+				if		(bUpdatePanningTop)	{	m_vPanningPos.y = m_vPanningBoundsTopLeft.y;		}
+				else if (bUpdatePanningTop)	{	m_vPanningPos.y = m_vPanningBoundsBottomRight.y;	}
+
+				ApplyPanningtoCamera();
+			}
 		}
 	}
 
@@ -268,10 +302,7 @@ public class CameraInputsHandler : InputsHandler
 
 				//
 				// Update position with delta
-				m_CameraGame.transform.localPosition = new Vector3(
-															m_vPosInitCamera.x + m_vPanningPos.x, 
-															m_vPosInitCamera.y + m_vPanningPos.y, 
-															m_CameraGame.transform.localPosition.z);
+				ApplyPanningtoCamera();
 			}
 		}
 	}
@@ -291,11 +322,14 @@ public class CameraInputsHandler : InputsHandler
 		{
 			m_fZoomTapFirstInputTimestamp = Time.time;
 		}
-		else if(m_bZoomTapFirstInput && m_bZoomTapSecondInput && m_fZoomTapDoubleInputTimeThreshold > Time.time - m_fZoomTapFirstInputTimestamp)
+		else if(m_bZoomTapFirstInput && m_bZoomTapSecondInput)
 		{
-			//
-			// Unzoom if double tap is contained in time threshold
-			SetZoomLevel(m_iZoomTapCurrentLevel - 1);
+			if(m_fZoomTapDoubleInputTimeThreshold > Time.time - m_fZoomTapFirstInputTimestamp)
+			{
+				//
+				// Unzoom if double tap is contained in time threshold
+				SetZoomLevel(m_iZoomTapCurrentLevel - 1);
+			}
 
 			m_bZoomTapFirstInput = false;
 			m_bZoomTapSecondInput = false;

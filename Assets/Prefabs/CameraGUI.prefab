@@ -364,3 +364,7 @@ MonoBehaviour:
   m_fDistanceStartThreshold: 0.15
   m_fPanningFactor: 2
   m_fPanningBoundsEdgeSpace: 0.5
+  m_bDebugDrawPanning: 0
+  m_fZoomMaxRatio: 3
+  m_iZoomTapLevels: 3
+  m_fZoomTapDoubleInputTimeThreshold: 0.18
