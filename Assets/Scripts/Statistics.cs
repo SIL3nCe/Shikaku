@@ -12,6 +12,7 @@ public class Statistics
     public float fTotalPlayTime;
     public int totalGeneratedGrids;
     public int totalResolvedGrids;
+    public int totalCreatedAreas;
     public int totalUsedHint;
 
     public Statistics()
@@ -23,6 +24,42 @@ public class Statistics
         aDifficultyStats.Add(new LevelStatistics(EDifficulty.hard));
     }
 
+    public void AddGeneratedGrid(EDifficulty eDiff)
+    {
+        aDifficultyStats[(int)eDiff].generatedGrids++;
+        totalGeneratedGrids++;
+        SaveManager.SaveStats();
+    }
+
+    public void AddResolvedGrid(EDifficulty eDiff)
+    {
+        aDifficultyStats[(int)eDiff].resolvedGrids++;
+        totalResolvedGrids++;
+        SaveManager.SaveStats();
+    }
+    public void AddCreatedArea(EDifficulty eDiff)
+    {
+        aDifficultyStats[(int)eDiff].createdAreas++;
+        totalCreatedAreas++;
+        SaveManager.SaveStats();
+    }
+    public void AddUsedHint(EDifficulty eDiff)
+    {
+        aDifficultyStats[(int)eDiff].usedHints++;
+        totalUsedHint++;
+        SaveManager.SaveStats();
+    }
+    public void AddTimePassedInGrid(EDifficulty eDiff, float fTime)
+    {
+        aDifficultyStats[(int)eDiff].fPlayedTime += fTime;
+        fTotalPlayTime += fTime;
+
+        if (aDifficultyStats[(int)eDiff].fRecordTime > fTime)
+            aDifficultyStats[(int)eDiff].fRecordTime = fTime;
+
+        SaveManager.SaveStats();
+    }
+
     public string GetAsString()
     {
         string str = "Global";
@@ -30,6 +67,7 @@ public class Statistics
         str += "\nTotal played time: " + fTotalPlayTime;
         str += "\nTotal Generated grids: " + totalGeneratedGrids;
         str += "\nTotal resolved grids: " + totalResolvedGrids;
+        str += "\nTotal created areas: " + totalCreatedAreas;
         str += "\nTotal used hints: " + totalUsedHint;
 
         for (int i = 0; i < aDifficultyStats.Count; ++i)
@@ -47,10 +85,11 @@ public class LevelStatistics
 {
     public EDifficulty eDifficulty;
 
-    public int resolvedGrids;
-    public int generatedGrids;
     public float fPlayedTime; // store time in seconds
     public float fRecordTime; // Time of quickest grid resolved
+    public int resolvedGrids;
+    public int generatedGrids;
+    public int createdAreas;
     public int usedHints;
 
     public LevelStatistics(EDifficulty eDiff)
@@ -70,10 +109,11 @@ public class LevelStatistics
             case EDifficulty.hard: str = "Hard";break;
         }
 
-        str += "\nTotal played time: " + fPlayedTime;
+        str += "\nPlayed time: " + fPlayedTime;
         str += "\nRecord: " + fRecordTime;
-        str += "\nTotal Generated grids: " + generatedGrids;
-        str += "\nTotal resolved grids: " + resolvedGrids;
+        str += "\nGenerated grids: " + generatedGrids;
+        str += "\nResolved grids: " + resolvedGrids;
+        str += "\nCreated areas: " + createdAreas;
         str += "\nTotal used hints: " + usedHints;
 
         return str;

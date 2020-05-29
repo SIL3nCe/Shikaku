@@ -8,7 +8,7 @@ public static class SaveManager
 {
     private const string strStatisticsSaveName = "/Statistics";
 
-    public static Statistics Stats;
+    public static Statistics Stats = new Statistics();
 
     public static void SaveStats()
     {
