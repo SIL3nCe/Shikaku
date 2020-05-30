@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7297917554626348416}
   - component: {fileID: 7297917554626348419}
   - component: {fileID: 7297917554626348417}
+  - component: {fileID: 2741863288859519287}
   m_Layer: 0
   m_Name: Gameplay
   m_TagString: Untagged
@@ -44,12 +45,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a6f127f0548a5e43814dd585b7509fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cellPrefab: {fileID: 685935787712042749, guid: dc6bea8db67e43647bedb9b3790cf5ee,
+  m_cellPrefab: {fileID: 685935787712042749, guid: dc6bea8db67e43647bedb9b3790cf5ee,
     type: 3}
-  fCellSpacing: 0.08
-  AreaSelectionRectangle: {fileID: 21300000, guid: f97641200917621438bd1da06178ba85,
-    type: 3}
-  ParentCanvasForImages: {fileID: 0}
+  m_fCellSpacing: 0.08
+  m_CellsContainer: {fileID: 0}
 --- !u!114 &7297917554626348417
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63,5 +62,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Difficulty: 2
+  CanvasGame: {fileID: 0}
+  m_inputHandler: {fileID: 0}
+--- !u!114 &2741863288859519287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7297917554626348418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 518ecc0db99bc7f4ab3470071761b650, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_GameGrid: {fileID: 7297917554626348419}
   SelectionRectangle: {fileID: 0}
-  fSelecRectScale: 5
+  fSelecRectScale: 1
+  m_AreaSelectionRectangle: {fileID: 21300000, guid: f97641200917621438bd1da06178ba85,
+    type: 3}
+  m_ValidatedAreasContainer: {fileID: 0}
+  m_bDebugSelection: 0

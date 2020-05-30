@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-class Area : IComparable
+public class Area : IComparable
 {
     // Origin
     public int x; // Height (i)

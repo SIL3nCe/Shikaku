@@ -381,4 +381,16 @@ public class CameraInputsHandler : InputsHandler
 			m_bZoomTapSecondInput = false;
 		}
 	}
+
+	//
+	// Getters
+	public Vector2 GetPanning()
+	{
+		return m_vPanningPos;
+	}
+
+	public float GetZoomRatio()
+	{
+		return m_fZoomRatio;
+	}
 }

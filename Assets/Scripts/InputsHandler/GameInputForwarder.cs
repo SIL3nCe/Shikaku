@@ -14,6 +14,8 @@ public class GameInputForwarder : MonoBehaviour
 	public Camera m_CameraGame;
 	public GameGrid m_GameGrid;
 
+	public GamePlaySelection m_GamePlaySelection;
+
 	private InputsHandler m_currentInputHandler;
 
     // Start is called before the first frame update
@@ -29,8 +31,10 @@ public class GameInputForwarder : MonoBehaviour
 
 		//
 		// Setup input handlers
+		m_CanvasGameInputsHandler.SetGamePlaySelection(m_GamePlaySelection);
 		m_CanvasGameInputsHandler.SetCanvasGame(m_CanvasGame);
 		m_CanvasGameInputsHandler.SetCanvasGUI(m_CanvasGUI);
+		m_CanvasGameInputsHandler.SetCameraInputsHandler(m_CameraInputsHandler);
 		m_CameraInputsHandler.SetCameraGame(m_CameraGame);
 		m_CameraInputsHandler.SetCanvasGUI(m_CanvasGUI);
 		m_CameraInputsHandler.SetGameGrid(m_GameGrid);
