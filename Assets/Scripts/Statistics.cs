@@ -6,10 +6,10 @@ using System.Collections.Generic;
 public class Statistics
 {
     // Per difficulty
-    public List<LevelStatistics> aDifficultyStats;
+    private List<LevelStatistics> aDifficultyStats;
 
     // Global stats
-    public float fTotalPlayTime;
+    public long totalPlayTime; // In seconds
     public int totalGeneratedGrids;
     public int totalResolvedGrids;
     public int totalCreatedAreas;
@@ -30,13 +30,6 @@ public class Statistics
         totalGeneratedGrids++;
         SaveManager.SaveStats();
     }
-
-    public void AddResolvedGrid(EDifficulty eDiff)
-    {
-        aDifficultyStats[(int)eDiff].resolvedGrids++;
-        totalResolvedGrids++;
-        SaveManager.SaveStats();
-    }
     public void AddCreatedArea(EDifficulty eDiff)
     {
         aDifficultyStats[(int)eDiff].createdAreas++;
@@ -49,13 +42,22 @@ public class Statistics
         totalUsedHint++;
         SaveManager.SaveStats();
     }
-    public void AddTimePassedInGrid(EDifficulty eDiff, float fTime)
+    public void AddFinishedGrid(EDifficulty eDiff, int time, bool bResolved)
     {
-        aDifficultyStats[(int)eDiff].fPlayedTime += fTime;
-        fTotalPlayTime += fTime;
+        aDifficultyStats[(int)eDiff].playedTime += time;
+        totalPlayTime += time;
 
-        if (aDifficultyStats[(int)eDiff].fRecordTime > fTime)
-            aDifficultyStats[(int)eDiff].fRecordTime = fTime;
+        if (bResolved)
+        {
+            if (aDifficultyStats[(int)eDiff].recordTime > time
+                || aDifficultyStats[(int)eDiff].recordTime == -1)
+            {
+                aDifficultyStats[(int)eDiff].recordTime = time;
+            }
+
+            aDifficultyStats[(int)eDiff].resolvedGrids++;
+            totalResolvedGrids++;
+        }
 
         SaveManager.SaveStats();
     }
@@ -64,7 +66,7 @@ public class Statistics
     {
         string str = "Global";
 
-        str += "\nTotal played time: " + fTotalPlayTime;
+        str += "\nTotal played time: " + FormatFloatToTime(totalPlayTime);
         str += "\nTotal Generated grids: " + totalGeneratedGrids;
         str += "\nTotal resolved grids: " + totalResolvedGrids;
         str += "\nTotal created areas: " + totalCreatedAreas;
@@ -77,6 +79,18 @@ public class Statistics
 
         return str;
     }
+    public static string FormatFloatToTime(long time)
+    {
+        if (time == -1)
+            return "-";
+
+        long hours = time / 3600;
+        time %= 3600;
+        long minutes = time / 60;
+        time %= 60;
+
+        return hours.ToString("00") + ":" + minutes.ToString("00") + ":" + time.ToString("00");
+    }
 }
 
 // Stats for each level
@@ -85,8 +99,8 @@ public class LevelStatistics
 {
     public EDifficulty eDifficulty;
 
-    public float fPlayedTime; // store time in seconds
-    public float fRecordTime; // Time of quickest grid resolved
+    public long playedTime; // In seconds
+    public long recordTime = -1; // Time of quickest grid resolved in seconds
     public int resolvedGrids;
     public int generatedGrids;
     public int createdAreas;
@@ -109,8 +123,8 @@ public class LevelStatistics
             case EDifficulty.hard: str = "Hard";break;
         }
 
-        str += "\nPlayed time: " + fPlayedTime;
-        str += "\nRecord: " + fRecordTime;
+        str += "\nPlayed time: " + Statistics.FormatFloatToTime(playedTime);
+        str += "\nRecord: " + Statistics.FormatFloatToTime(recordTime);
         str += "\nGenerated grids: " + generatedGrids;
         str += "\nResolved grids: " + resolvedGrids;
         str += "\nCreated areas: " + createdAreas;

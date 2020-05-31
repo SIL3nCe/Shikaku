@@ -12,10 +12,10 @@ public class GameGrid : MonoBehaviour
 	//
 	// Cells with Height = i (y), Width = j (x)
 	[Tooltip("Cell object to instantiate")]
-    public GameObject m_cellPrefab;
-    private float m_fCellSize = 1.0f;
-    public float m_fCellSpacing = 0.08f;
-    private GameObject[,] m_aGridView;
+	public GameObject m_cellPrefab;
+	private float m_fCellSize = 1.0f;
+	public float m_fCellSpacing = 0.08f;
+	private GameObject[,] m_aGridView;
 	private Vector2 m_vTopLeft;
 	private int m_iWidth = 0;
 	private int m_iHeight = 0;
@@ -24,13 +24,15 @@ public class GameGrid : MonoBehaviour
 	// Model
 	private GridModel m_aGridModel;
 
-    private int m_iUsedCellCounter;
-    private bool m_bGridEnded;
+	private int m_iUsedCellCounter;
+	private bool m_bGridEnded;
 
 	// Selected area visual
-    public GameObject m_CellsContainer;
+	public GameObject m_CellsContainer;
 
-    private Resolver m_resolver;
+	private Resolver m_resolver;
+
+	private float fTimer = 0.0f;
 
 	void Start()
     {
@@ -135,6 +137,8 @@ public class GameGrid : MonoBehaviour
 
         m_bGridEnded = false;
 
+		fTimer = Time.time;
+
 		//
 		// Notify listeners
 		NotifyGameGridCreated(nArea);
@@ -183,6 +187,8 @@ public class GameGrid : MonoBehaviour
         m_bGridEnded = true;
         Debug.Log("GRID ENDED, GGWP");
 
+		SaveManager.Stats.AddFinishedGrid(StaticDatas.eCurrentDifficulty, GetTimePassedInGrid(), true);
+
 		//
 		// Notify listeners
 		NotifyGameGridFinished();
@@ -195,6 +201,8 @@ public class GameGrid : MonoBehaviour
 		area.startY = cellTopLeft.GetCoordinates().y;
 		area.width = iAreaWidth;
 		area.height = iAreaHeight;
+
+		SaveManager.Stats.AddCreatedArea(StaticDatas.eCurrentDifficulty);
 
 		//
 		// Check for end of grid
@@ -281,6 +289,11 @@ public class GameGrid : MonoBehaviour
 	public int GetHeight()
 	{
 		return m_iHeight;
+	}
+
+	public int GetTimePassedInGrid()
+	{
+		return (int)(Time.time - fTimer);
 	}
 
 	private void NotifyGameGridCreated(int iAreasCount)

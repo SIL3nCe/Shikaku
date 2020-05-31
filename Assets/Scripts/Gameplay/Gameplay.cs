@@ -21,24 +21,26 @@ public class Gameplay : MonoBehaviour
 		}
 
         gameGrid = gameObject.GetComponent<GameGrid>();
+
         GenerateNewGrid();
     }
 
     private void GenerateNewGrid()
     {
         gameGrid.Generate(Difficulty);
-        SaveManager.Stats.aDifficultyStats[(int)Difficulty].generatedGrids++;
-        SaveManager.SaveStats();
+        SaveManager.Stats.AddGeneratedGrid(Difficulty);
     }
 
     void Update()
     {
 		if (Input.GetKeyDown("r"))
         {
-            gameGrid.Generate(Difficulty);
+            SaveManager.Stats.AddFinishedGrid(StaticDatas.eCurrentDifficulty, gameGrid.GetTimePassedInGrid(), false);
+            GenerateNewGrid();
         }
         else if (Input.GetKeyDown("v"))
         {
+            SaveManager.Stats.AddUsedHint(Difficulty);
             if (gameGrid.CheckGridFeasibility())
             {
                 Debug.Log("Current grid can be completed");
@@ -50,6 +52,7 @@ public class Gameplay : MonoBehaviour
         }
         else if (Input.GetKeyDown("h"))
         {
+            SaveManager.Stats.AddUsedHint(Difficulty);
             if (gameGrid.TakeAGridStep())
             {
                 Debug.Log("Grid has been advanced");
