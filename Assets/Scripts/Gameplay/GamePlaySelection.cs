@@ -12,43 +12,46 @@ public class GamePlaySelection : GameGridListener
 	private List<Cell> m_aSelectedCells;
 	private bool m_bSelection;
 	private Vector2 m_vSelectionStart;
-	private Vector2 m_vLastInputPosition;
+	private Vector2 m_vSelectionCurrent;
 
 	public Image SelectionRectangle;
 
 	[Range(1, 50)]
 	public float fSelecRectScale;
 
-	private Vector2Int m_vLastCellEntered;
-	private Vector2Int m_vCellStart;
-	private Vector2Int m_vCellEnd;
-
 	public Sprite m_AreaSelectionRectangle;
 	public Canvas m_CanvasGame;
 
 	//
 	// Input related
-	private bool m_bInputInsideGrid = false;
 	private Cell m_cellHovered = null;
 	private Cell m_cellLastHovered = null;
-	
+	private Cell m_cellFirstHovered = null;
+	private Vector2Int m_vLastCellEntered;
+	private Vector2Int m_vCellStart;
+	private Vector2Int m_vCellEnd;
+
 	public GameObject m_ValidatedAreasContainer;
 
 	private List<GameObject> m_aValidatedAreas;
 
 	//
 	// Debug
-	public bool m_bDebugSelection;
+	public bool m_bDebugSelection = false;
+	public bool m_bDebugCellHovered = false;
 
 	// Start is called before the first frame update
 	void Start()
 	{
 		m_aValidatedAreas = new List<GameObject>();
+		m_aSelectedCells = new List<Cell>();
 
 		SelectionRectangle.enabled = false;
 		SelectionRectangle.transform.SetAsLastSibling(); // Draw it last, on top of all gui
 
 		m_bSelection = false;
+
+		m_GameGrid.AddGameGridListener(this);
 	}
 
 	void Update()
@@ -65,52 +68,68 @@ public class GamePlaySelection : GameGridListener
 
 			//
 			// InputPosition
-			Vector2 vInputPosition = m_vLastInputPosition;
+			Vector2 vInputPosition = m_vSelectionCurrent;
 			Debug.DrawLine(new Vector3(m_CanvasGame.gameObject.transform.position.x + vInputPosition.x - 0.3f, m_CanvasGame.gameObject.transform.position.y + vInputPosition.y, 20.0f), new Vector3(m_CanvasGame.gameObject.transform.position.x + vInputPosition.x + 0.3f, m_CanvasGame.gameObject.transform.position.y + vInputPosition.y, 20.0f), new Color(1.0f, 0.0f, 0.0f));
 			Debug.DrawLine(new Vector3(m_CanvasGame.gameObject.transform.position.x + vInputPosition.x, m_CanvasGame.gameObject.transform.position.y + vInputPosition.y + 0.3f, 20.0f), new Vector3(m_CanvasGame.gameObject.transform.position.x + vInputPosition.x, m_CanvasGame.gameObject.transform.position.y + vInputPosition.y - 0.3f, 20.0f), new Color(1.0f, 0.0f, 0.0f));
 		}
 	}
 
 	// Update is called once per frame
-	void OnSelectionUpdate(Vector2 vScreenPosition)
-	{
-		m_vLastInputPosition = vScreenPosition;
-		SelectionRectangle.transform.SetAsLastSibling(); // Draw it last, on top of all gui
-		if (!m_bSelection)
-		{
-			// Check game grid can begin selection before
-			if (BeginSelection(vScreenPosition))
-			{
-				m_vSelectionStart = vScreenPosition;
-				SelectionRectangle.rectTransform.anchoredPosition = m_vSelectionStart;
-				SelectionRectangle.enabled = true;
-				m_bSelection = true;
-			}
-		}
-		else
-		{
-			float fWidth = (m_vSelectionStart.x - vScreenPosition.x);
-			float fHeight = (m_vSelectionStart.y - vScreenPosition.y);
-			SelectionRectangle.rectTransform.sizeDelta = new Vector2(Mathf.Abs(fWidth), Mathf.Abs(fHeight));
-		}
-	}
+	//void OnSelectionUpdate(Vector2 vScreenPosition)
+	//{
+	//	m_vSelectionCurrent = vScreenPosition;
+	//	SelectionRectangle.transform.SetAsLastSibling(); // Draw it last, on top of all gui
+	//	if (!m_bSelection)
+	//	{
+	//		// Check game grid can begin selection before
+	//		if (BeginSelection(vScreenPosition))
+	//		{
+	//			m_vSelectionStart = vScreenPosition;
+	//			SelectionRectangle.rectTransform.anchoredPosition = m_vSelectionStart;
+	//			SelectionRectangle.enabled = true;
+	//			m_bSelection = true;
+	//		}
+	//	}
+	//	else
+	//	{
+	//		float fWidth = (m_vSelectionStart.x - vScreenPosition.x);
+	//		float fHeight = (m_vSelectionStart.y - vScreenPosition.y);
+	//		SelectionRectangle.rectTransform.sizeDelta = new Vector2(Mathf.Abs(fWidth), Mathf.Abs(fHeight));
+	//	}
+	//}
 
 	public void UpdateInputPosition(Vector2 vScreenPosition)
 	{
+		//
+		// No need for inputs if grid is completed
+		if (m_GameGrid.IsGridCompleted())
+		{
+			return;
+		}
+
+		//
+		// First input
+		if(!m_bSelection)
+		{
+			m_bSelection = true;
+			m_vSelectionStart = vScreenPosition;
+		}
+
+		//
+		// Update current input
+		m_vSelectionCurrent = vScreenPosition;
+
+		//
+		// Inside grid bounds
 		Vector2 vTopLeft = m_GameGrid.GetTopLeft();
 		Vector2 vGridSize = m_GameGrid.GetSize();
 		float fGridWidth = vGridSize.x;
 		float fGridHeight = vGridSize.y;
-
-		//
-		// Inside grid bounds
 		if ((		vScreenPosition.x >= vTopLeft.x
 				&&	vScreenPosition.x <= vTopLeft.x + fGridWidth
 				&&	vScreenPosition.y <= vTopLeft.y
 				&&	vScreenPosition.y >= vTopLeft.y - fGridHeight))
 		{
-			m_bInputInsideGrid = true;
-
 			int iWidth = m_GameGrid.GetWidth();
 			int iHeight = m_GameGrid.GetHeight();
 
@@ -173,38 +192,83 @@ public class GamePlaySelection : GameGridListener
 
 	public void InputsStopped()
 	{
-		m_bInputInsideGrid = false;
+		//
+		// Check for area deletion
+		if (	Mathf.Approximately(m_vSelectionCurrent.x, m_vSelectionStart.x)
+			&&	Mathf.Approximately(m_vSelectionCurrent.y, m_vSelectionStart.y)
+			&&	null != m_cellLastHovered)
+		{
+			m_GameGrid.DeleteArea(m_cellLastHovered.areaId);
+			m_aValidatedAreas[m_cellLastHovered.areaId].SetActive(false);
+		}
 
+		//
+		// Selection ended -> area validation
+		OnSelectionEnded();
+
+		//
+		// Reset state
+		m_bSelection = false;
 		OnCurrentCellUnhovered();
+		m_cellFirstHovered = null;
 		m_cellLastHovered = null;
+		SelectionRectangle.enabled = false;
+		SelectionRectangle.rectTransform.sizeDelta = new Vector2(0.0f, 0.0f);
 	}
 
 	public void OnCellHovered(GameObject[,] aGridView, Cell cell)
 	{
-		if (cell == m_cellHovered)
+		if (cell == m_cellLastHovered)
 		{
 			return;
 		}
 
 		//
-		// Unselect cell and select new one
-		OnCurrentCellUnhovered();
+		// Draw it last, on top of all gui
+		SelectionRectangle.transform.SetAsLastSibling();
 
 		//
-		// Update hovered cells
-		m_cellHovered = cell;
-		m_cellLastHovered = cell;
-
-		m_cellHovered.bHasMouseOnIt = true;
-
-		m_vLastCellEntered = cell.GetCoordinates();
-
-		cell.GetComponent<SpriteRenderer>().color = new Color(1.0f, 0.0f, 0.0f); // TODO
-
-		if (m_bSelection)
+		// If new cell, unselect it and select the new one
+		if (m_cellLastHovered != cell)
 		{
-			// Check that current selected area is valid
+			OnCurrentCellUnhovered();
 
+			//
+			// Update hovered cell
+			m_cellHovered = cell;
+			m_cellHovered.bHasMouseOnIt = true;
+
+			if(null == m_cellLastHovered)
+			{
+				m_cellFirstHovered = cell;
+				m_vCellStart = m_cellFirstHovered.GetCoordinates();
+
+				SelectionRectangle.rectTransform.anchoredPosition = m_vSelectionStart;
+				SelectionRectangle.enabled = true;
+			}
+			m_cellLastHovered = cell;
+			m_vLastCellEntered = m_cellLastHovered.GetCoordinates();
+
+			if(m_bDebugCellHovered)
+			{
+				cell.GetComponent<SpriteRenderer>().color = new Color(1.0f, 0.0f, 0.0f);
+			}
+
+			//
+			// Cell already in area, do nothing else
+			if(m_cellFirstHovered.IsInArea())
+			{
+				SelectionRectangle.enabled = false;
+				return;
+			}
+
+			//
+			// Update selection rectangle
+			float fWidth = (m_vSelectionStart.x - m_vSelectionCurrent.x);
+			float fHeight = (m_vSelectionStart.y - m_vSelectionCurrent.y);
+			SelectionRectangle.rectTransform.sizeDelta = new Vector2(Mathf.Abs(fWidth), Mathf.Abs(fHeight));
+
+			// Check that current selected area is valid
 			Vector2Int vTopLeft = new Vector2Int(Mathf.Min(m_vCellStart.x, m_vLastCellEntered.x), Mathf.Min(m_vCellStart.y, m_vLastCellEntered.y));
 			int areaWidth = Mathf.Abs(m_vCellStart.y - m_vLastCellEntered.y) + 1;
 			int areaHeight = Mathf.Abs(m_vCellStart.x - m_vLastCellEntered.x) + 1;
@@ -222,7 +286,7 @@ public class GamePlaySelection : GameGridListener
 				// Clear selected cells array (then don't need to compute cells to add only)
 				m_aSelectedCells.Clear();
 
-				// Chose color based on if area could is a valid one or not
+				// Choose color based on if area could is a valid one or not
 				Color cSelectedColor = Color.cyan;
 				if (m_GameGrid.IsAreaValid(vTopLeft, areaWidth, areaHeight, ref areaId))
 				{
@@ -271,58 +335,44 @@ public class GamePlaySelection : GameGridListener
 	{
 		if (null != m_cellHovered)
 		{
-			m_cellHovered.GetComponent<SpriteRenderer>().color = new Color(1.0f, 1.0f, 1.0f); // TODO
+			if(m_bDebugCellHovered)
+			{
+				m_cellHovered.GetComponent<SpriteRenderer>().color = new Color(1.0f, 1.0f, 1.0f); // TODO
+			}
 			m_cellHovered.bHasMouseOnIt = false;
 			m_cellHovered = null;
 		}
 	}
 
-	public bool BeginSelection(Vector2 vInputPosition)
-	{
-		if (m_GameGrid.IsGridCompleted())
-			return false;
+	//public bool BeginSelection(Vector2 vInputPosition)
+	//{
+	//	GameObject[,] aGridview = m_GameGrid.GetGridView();
+	//	int iWidth = m_GameGrid.GetWidth();
+	//	int iHeight = m_GameGrid.GetHeight();
+	//	Cell LastEnteredCell = aGridview[m_vLastCellEntered.x, m_vLastCellEntered.y].GetComponent<Cell>();
+	//
+	//	// Otherwise begin selection
+	//	m_bSelection = true;
+	//
+	//	m_vCellStart = m_vLastCellEntered;
+	//	m_vSelectionStart = vInputPosition;
+	//	m_vSelectionStart.y = Camera.main.pixelHeight - m_vSelectionStart.y; // TODO 
+	//
+	//	return true;
+	//}
 
-		GameObject[,] aGridview = m_GameGrid.GetGridView();
-		int iWidth = m_GameGrid.GetWidth();
-		int iHeight = m_GameGrid.GetHeight();
-		Cell LastEnteredCell = aGridview[m_vLastCellEntered.x, m_vLastCellEntered.y].GetComponent<Cell>();
-
-		// Cursor is no more in the cell
-		if (!LastEnteredCell.bHasMouseOnIt)
-			return false;
-
-		// Already in area, delete this area
-		int lastEnteredAreaId = LastEnteredCell.areaId;
-		if (lastEnteredAreaId >= 0)
-		{
-			m_GameGrid.DeleteArea(lastEnteredAreaId);
-			m_aValidatedAreas[lastEnteredAreaId].SetActive(false);
-
-			return false;
-		}
-
-		// Otherwise begin selection
-		m_bSelection = true;
-
-		m_vCellStart = m_vLastCellEntered;
-		m_vSelectionStart = vInputPosition;
-		m_vSelectionStart.y = Camera.main.pixelHeight - m_vSelectionStart.y;
-
-		return true;
-	}
-
-	public void StopSelection()
-	{
-		if (m_bSelection)
-		{
-			m_bSelection = false;
-			m_vCellEnd = m_vLastCellEntered;
-			OnSelectionEnded();
-
-			SelectionRectangle.enabled = false;
-			SelectionRectangle.rectTransform.sizeDelta = new Vector2(0.0f, 0.0f);
-		}
-	}
+	//public void StopSelection()
+	//{
+	//	if (m_bSelection)
+	//	{
+	//		m_bSelection = false;
+	//		m_vCellEnd = m_vLastCellEntered;
+	//		OnSelectionEnded();
+	//
+	//		SelectionRectangle.enabled = false;
+	//		SelectionRectangle.rectTransform.sizeDelta = new Vector2(0.0f, 0.0f);
+	//	}
+	//}
 
 	private void OnSelectionEnded()
 	{
@@ -342,14 +392,14 @@ public class GamePlaySelection : GameGridListener
 		foreach (Cell cell in m_aSelectedCells)
 		{
 			Vector2Int vCellCoordinates = cell.GetCoordinates();
-			if (vCellCoordinates.x <= vSelectionTopLeft.x
-				&& vCellCoordinates.y <= vSelectionTopLeft.y)
+			if (	vCellCoordinates.x <= vSelectionTopLeft.x
+				&&	vCellCoordinates.y <= vSelectionTopLeft.y)
 			{
 				cellTopLeft = cell;
 				vSelectionTopLeft = vCellCoordinates;
 			}
-			else if (vCellCoordinates.x >= vSelectionBottomRight.x
-					&& vCellCoordinates.y >= vSelectionBottomRight.y)
+			else if (	vCellCoordinates.x >= vSelectionBottomRight.x
+					&&	vCellCoordinates.y >= vSelectionBottomRight.y)
 			{
 				cellBottomRight = cell;
 				vSelectionBottomRight = vCellCoordinates;
@@ -452,7 +502,7 @@ public class GamePlaySelection : GameGridListener
 
 	public override void OnGameGridDestroyed()
 	{
-		m_aSelectedCells = new List<Cell>();
+		m_aSelectedCells.Clear();
 
 		//
 		// Destroy all validates areas

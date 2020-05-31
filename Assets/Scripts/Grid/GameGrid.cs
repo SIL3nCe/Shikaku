@@ -355,4 +355,20 @@ public class GameGrid : MonoBehaviour
 			}
 		}
 	}
+
+	public bool AddGameGridListener(GameGridListener listener)
+	{
+		if(null == m_aGameGridListeners.Find(e => e == listener))
+		{
+			m_aGameGridListeners.Add(listener);
+			return true;
+		}
+
+		return false;
+	}
+
+	public bool RemoveGameGridListener(GameGridListener listener)
+	{
+		return m_aGameGridListeners.Remove(listener);
+	}
 }
