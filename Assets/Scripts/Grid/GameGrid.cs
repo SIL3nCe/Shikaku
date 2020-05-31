@@ -32,6 +32,7 @@ public class GameGrid : MonoBehaviour
 
 	private Resolver m_resolver;
 
+	private EDifficulty Difficulty;
 	private float fTimer = 0.0f;
 
 	void Start()
@@ -62,9 +63,11 @@ public class GameGrid : MonoBehaviour
     {
         Clean();
 
-        //
-        // Generator
-        Debug.Log("Generate grid");
+		Difficulty = eDifficulty;
+
+		//
+		// Generator
+		Debug.Log("Generate grid");
         float fTimeCounter = Time.realtimeSinceStartup;
         GridGenerator generator = new GridGenerator();
         var retVal = generator.Generate(eDifficulty);
@@ -187,7 +190,7 @@ public class GameGrid : MonoBehaviour
         m_bGridEnded = true;
         Debug.Log("GRID ENDED, GGWP");
 
-		SaveManager.Stats.AddFinishedGrid(StaticDatas.eCurrentDifficulty, GetTimePassedInGrid(), true);
+		SaveManager.Stats.AddFinishedGrid(Difficulty, GetTimePassedInGrid(), true);
 
 		//
 		// Notify listeners
@@ -202,7 +205,7 @@ public class GameGrid : MonoBehaviour
 		area.width = iAreaWidth;
 		area.height = iAreaHeight;
 
-		SaveManager.Stats.AddCreatedArea(StaticDatas.eCurrentDifficulty);
+		SaveManager.Stats.AddCreatedArea(Difficulty);
 
 		//
 		// Check for end of grid
