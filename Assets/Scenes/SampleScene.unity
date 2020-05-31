@@ -471,6 +471,11 @@ PrefabInstance:
       propertyPath: m_ValidatedAreasContainer
       value: 
       objectReference: {fileID: 4717170978543158861}
+    - target: {fileID: 2741863288859519287, guid: d127db12c22bb194e955c0a49fa5900b,
+        type: 3}
+      propertyPath: m_CanvasGame
+      value: 
+      objectReference: {fileID: 2119115073}
     - target: {fileID: 7297917554626348416, guid: d127db12c22bb194e955c0a49fa5900b,
         type: 3}
       propertyPath: m_LocalPosition.x

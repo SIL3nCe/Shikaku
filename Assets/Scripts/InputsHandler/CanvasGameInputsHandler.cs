@@ -35,12 +35,17 @@ public class CanvasGameInputsHandler : InputsHandler
 	{
 		m_vInputPosition = vScreenPosition;
 		RectTransform rectTransform = m_CanvasGame.GetComponent<RectTransform>();
-		float fZoomRatio = m_CameraInputsHandler.GetZoomRatio();
-		Vector2 vScreenPositionWithModifiers = m_CameraInputsHandler.GetPanning() + vScreenPosition;
-		Vector2 vNewScreenPosition = new Vector2(	vScreenPositionWithModifiers.x * rectTransform.rect.width / m_CanvasGUI.GetComponent<RectTransform>().rect.width,
-													vScreenPositionWithModifiers.y * rectTransform.rect.height / m_CanvasGUI.GetComponent<RectTransform>().rect.height);
-		m_vInputPositionTransformed = vNewScreenPosition;
-		m_GamePlaySelection.UpdateInputPosition(vNewScreenPosition);
+
+		//
+		// Ratio between two canvas size. Simplification here as initial orthographic size of 
+		// game camera = size of game canvas. And zoom modifies GameCamera ortho size.
+		Vector2 vRatioCanvas = new Vector2(	(m_CanvasGame.worldCamera.orthographicSize * 2.0f) / m_CanvasGUI.GetComponent<RectTransform>().rect.width,
+											(m_CanvasGame.worldCamera.orthographicSize * 2.0f) / m_CanvasGUI.GetComponent<RectTransform>().rect.height);
+
+		m_vInputPositionTransformed =	m_CameraInputsHandler.GetPanning() +
+										vRatioCanvas * vScreenPosition;
+		//m_vInputPositionTransformed = new Vector2(m_CanvasGame.worldCamera.transform.localPosition.x, m_CanvasGame.worldCamera.transform.localPosition.y) + vScreenPositionWithModifiers / fZoomRatio;
+		m_GamePlaySelection.UpdateInputPosition(m_vInputPositionTransformed);
 	}
 
 	public override void InputsStopped()

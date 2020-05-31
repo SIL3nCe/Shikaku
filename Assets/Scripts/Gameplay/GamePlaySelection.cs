@@ -24,6 +24,7 @@ public class GamePlaySelection : GameGridListener
 	private Vector2Int m_vCellEnd;
 
 	public Sprite m_AreaSelectionRectangle;
+	public Canvas m_CanvasGame;
 
 	//
 	// Input related
@@ -57,16 +58,16 @@ public class GamePlaySelection : GameGridListener
 			//
 			// GameGrid
 			Vector2 vTopLeft = m_GameGrid.GetTopLeft();
-			Debug.DrawLine(new Vector3(gameObject.transform.position.x + vTopLeft.x, gameObject.transform.position.y + vTopLeft.y, 20.0f), new Vector3(gameObject.transform.position.x + -vTopLeft.x, gameObject.transform.position.y + vTopLeft.y, 20.0f), new Color(1.0f, 0.0f, 0.0f));
-			Debug.DrawLine(new Vector3(gameObject.transform.position.x + vTopLeft.x, gameObject.transform.position.y + vTopLeft.y, 20.0f), new Vector3(gameObject.transform.position.x + vTopLeft.x, gameObject.transform.position.y + -vTopLeft.y, 20.0f), new Color(1.0f, 0.0f, 0.0f));
-			Debug.DrawLine(new Vector3(gameObject.transform.position.x + -vTopLeft.x, gameObject.transform.position.y + -vTopLeft.y, 20.0f), new Vector3(gameObject.transform.position.x + -vTopLeft.x, gameObject.transform.position.y + vTopLeft.y, 20.0f), new Color(1.0f, 0.0f, 0.0f));
-			Debug.DrawLine(new Vector3(gameObject.transform.position.x + -vTopLeft.x, gameObject.transform.position.y + -vTopLeft.y, 20.0f), new Vector3(gameObject.transform.position.x + vTopLeft.x, gameObject.transform.position.y + -vTopLeft.y, 20.0f), new Color(1.0f, 0.0f, 0.0f));
+			Debug.DrawLine(new Vector3(m_CanvasGame.gameObject.transform.position.x + vTopLeft.x, m_CanvasGame.gameObject.transform.position.y + vTopLeft.y, 20.0f), new Vector3(m_CanvasGame.gameObject.transform.position.x + -vTopLeft.x, m_CanvasGame.gameObject.transform.position.y + vTopLeft.y, 20.0f), new Color(1.0f, 0.0f, 0.0f));
+			Debug.DrawLine(new Vector3(m_CanvasGame.gameObject.transform.position.x + vTopLeft.x, m_CanvasGame.gameObject.transform.position.y + vTopLeft.y, 20.0f), new Vector3(m_CanvasGame.gameObject.transform.position.x + vTopLeft.x, m_CanvasGame.gameObject.transform.position.y + -vTopLeft.y, 20.0f), new Color(1.0f, 0.0f, 0.0f));
+			Debug.DrawLine(new Vector3(m_CanvasGame.gameObject.transform.position.x + -vTopLeft.x, m_CanvasGame.gameObject.transform.position.y + -vTopLeft.y, 20.0f), new Vector3(m_CanvasGame.gameObject.transform.position.x + -vTopLeft.x, m_CanvasGame.gameObject.transform.position.y + vTopLeft.y, 20.0f), new Color(1.0f, 0.0f, 0.0f));
+			Debug.DrawLine(new Vector3(m_CanvasGame.gameObject.transform.position.x + -vTopLeft.x, m_CanvasGame.gameObject.transform.position.y + -vTopLeft.y, 20.0f), new Vector3(m_CanvasGame.gameObject.transform.position.x + vTopLeft.x, m_CanvasGame.gameObject.transform.position.y + -vTopLeft.y, 20.0f), new Color(1.0f, 0.0f, 0.0f));
 
 			//
 			// InputPosition
 			Vector2 vInputPosition = m_vLastInputPosition;
-			Debug.DrawLine(new Vector3(gameObject.transform.position.x + vInputPosition.x - 0.3f, gameObject.transform.position.y + vInputPosition.y, 20.0f), new Vector3(gameObject.transform.position.x + vInputPosition.x + 0.3f, gameObject.transform.position.y + vInputPosition.y, 20.0f), new Color(1.0f, 0.0f, 0.0f));
-			Debug.DrawLine(new Vector3(gameObject.transform.position.x + vInputPosition.x, gameObject.transform.position.y + vInputPosition.y + 0.3f, 20.0f), new Vector3(gameObject.transform.position.x + vInputPosition.x, gameObject.transform.position.y + vInputPosition.y - 0.3f, 20.0f), new Color(1.0f, 0.0f, 0.0f));
+			Debug.DrawLine(new Vector3(m_CanvasGame.gameObject.transform.position.x + vInputPosition.x - 0.3f, m_CanvasGame.gameObject.transform.position.y + vInputPosition.y, 20.0f), new Vector3(m_CanvasGame.gameObject.transform.position.x + vInputPosition.x + 0.3f, m_CanvasGame.gameObject.transform.position.y + vInputPosition.y, 20.0f), new Color(1.0f, 0.0f, 0.0f));
+			Debug.DrawLine(new Vector3(m_CanvasGame.gameObject.transform.position.x + vInputPosition.x, m_CanvasGame.gameObject.transform.position.y + vInputPosition.y + 0.3f, 20.0f), new Vector3(m_CanvasGame.gameObject.transform.position.x + vInputPosition.x, m_CanvasGame.gameObject.transform.position.y + vInputPosition.y - 0.3f, 20.0f), new Color(1.0f, 0.0f, 0.0f));
 		}
 	}
 
@@ -97,21 +98,25 @@ public class GamePlaySelection : GameGridListener
 	public void UpdateInputPosition(Vector2 vScreenPosition)
 	{
 		Vector2 vTopLeft = m_GameGrid.GetTopLeft();
-		int iWidth = m_GameGrid.GetWidth();
-		int iHeight = m_GameGrid.GetHeight();
+		Vector2 vGridSize = m_GameGrid.GetSize();
+		float fGridWidth = vGridSize.x;
+		float fGridHeight = vGridSize.y;
 
 		//
 		// Inside grid bounds
-		if (!(		vScreenPosition.x < vTopLeft.x 
-				||	vScreenPosition.x > vTopLeft.x + iWidth
-				||	vScreenPosition.y > vTopLeft.y
-				||	vScreenPosition.y < vTopLeft.y - iHeight))
+		if ((		vScreenPosition.x >= vTopLeft.x
+				&&	vScreenPosition.x <= vTopLeft.x + fGridWidth
+				&&	vScreenPosition.y <= vTopLeft.y
+				&&	vScreenPosition.y >= vTopLeft.y - fGridHeight))
 		{
 			m_bInputInsideGrid = true;
 
+			int iWidth = m_GameGrid.GetWidth();
+			int iHeight = m_GameGrid.GetHeight();
+
 			//
 			// If coming from outside, look for hovered cell
-			if (null == m_cellHovered && null == m_cellLastHovered)
+			if (true)//null == m_cellHovered && null == m_cellLastHovered)
 			{
 				ResolveInputPositionForCells(0, iHeight, 0, iWidth, vScreenPosition);
 			}
@@ -140,19 +145,19 @@ public class GamePlaySelection : GameGridListener
 	{
 		GameObject[,] aGridView = m_GameGrid.GetGridView(); ;
 		float fCellSize = m_GameGrid.GetCellSize();
-		float fHalfCellSize = fCellSize * 0.5f;
-		for (int iHeight = iStartY; iHeight < iEndY; ++iHeight)
+		float fHalfCellSize = fCellSize * 0.5f ;
+		for (int iColumn = iStartY; iColumn < iEndY; ++iColumn)
 		{
-			for (int iWidth = iStartX; iWidth < iEndX; ++iWidth)
+			for (int iRow = iStartX; iRow < iEndX; ++iRow)
 			{
-				GameObject objectCell = aGridView[iWidth, iHeight];
+				GameObject objectCell = aGridView[iColumn, iRow];
 				RectTransform t = objectCell.GetComponent<RectTransform>();
 				Vector2 vPos = t.anchoredPosition;
 
-				if (		vPos.x - fHalfCellSize < vScreenPosition.x
-						&&	vPos.y + fHalfCellSize > vScreenPosition.y
-						&&	vPos.x + fHalfCellSize > vScreenPosition.x
-						&&	vPos.y - fHalfCellSize < vScreenPosition.y)
+				if (		vPos.x - fHalfCellSize <= vScreenPosition.x
+						&&	vPos.y + fHalfCellSize >= vScreenPosition.y
+						&&	vPos.x + fHalfCellSize >= vScreenPosition.x
+						&&	vPos.y - fHalfCellSize <= vScreenPosition.y)
 				{
 					Cell newCell = objectCell.GetComponent<Cell>();
 
@@ -194,7 +199,7 @@ public class GamePlaySelection : GameGridListener
 
 		m_vLastCellEntered = cell.GetCoordinates();
 
-		//cell.GetComponent<SpriteRenderer>().color = new Color(1.0f, 0.0f, 0.0f);
+		cell.GetComponent<SpriteRenderer>().color = new Color(1.0f, 0.0f, 0.0f); // TODO
 
 		if (m_bSelection)
 		{
@@ -266,7 +271,7 @@ public class GamePlaySelection : GameGridListener
 	{
 		if (null != m_cellHovered)
 		{
-			//m_cellHovered.GetComponent<SpriteRenderer>().color = new Color(1.0f, 1.0f, 1.0f);
+			m_cellHovered.GetComponent<SpriteRenderer>().color = new Color(1.0f, 1.0f, 1.0f); // TODO
 			m_cellHovered.bHasMouseOnIt = false;
 			m_cellHovered = null;
 		}

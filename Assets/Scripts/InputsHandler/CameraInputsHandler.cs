@@ -393,4 +393,9 @@ public class CameraInputsHandler : InputsHandler
 	{
 		return m_fZoomRatio;
 	}
+
+	public float GetZoomRatioMax()
+	{
+		return m_fZoomMaxRatio;
+	}
 }
