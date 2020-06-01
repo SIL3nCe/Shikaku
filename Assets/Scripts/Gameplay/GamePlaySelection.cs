@@ -196,7 +196,7 @@ public class GamePlaySelection : GameGridListener
 		// Check for area deletion
 		if (	Mathf.Approximately(m_vSelectionCurrent.x, m_vSelectionStart.x)
 			&&	Mathf.Approximately(m_vSelectionCurrent.y, m_vSelectionStart.y)
-			&&	null != m_cellLastHovered)
+			&&	null != m_cellLastHovered && m_cellLastHovered.IsInArea())
 		{
 			m_GameGrid.DeleteArea(m_cellLastHovered.areaId);
 			m_aValidatedAreas[m_cellLastHovered.areaId].SetActive(false);
@@ -218,7 +218,7 @@ public class GamePlaySelection : GameGridListener
 
 	public void OnCellHovered(GameObject[,] aGridView, Cell cell)
 	{
-		if (cell == m_cellLastHovered)
+		if (null != cell && cell == m_cellLastHovered)
 		{
 			return;
 		}
@@ -337,7 +337,14 @@ public class GamePlaySelection : GameGridListener
 		{
 			if(m_bDebugCellHovered)
 			{
-				m_cellHovered.GetComponent<SpriteRenderer>().color = new Color(1.0f, 1.0f, 1.0f); // TODO
+				if(m_cellLastHovered.IsInArea())
+				{
+					m_cellHovered.GetComponent<SpriteRenderer>().color = new Color(1.0f, 0.0f, 0.0f); // TODO
+				}
+				else
+				{
+					m_cellHovered.GetComponent<SpriteRenderer>().color = new Color(1.0f, 1.0f, 1.0f); // TODO
+				}
 			}
 			m_cellHovered.bHasMouseOnIt = false;
 			m_cellHovered = null;
@@ -415,7 +422,7 @@ public class GamePlaySelection : GameGridListener
 		{
 			for (int i = 0; i < nCells; ++i)
 			{
-				m_aSelectedCells[i].GetComponent<SpriteRenderer>().color = Color.white;
+				m_aSelectedCells[i].GetComponent<SpriteRenderer>().color = Color.cyan;
 				m_aSelectedCells[i].areaId = iAreaId;
 			}
 
@@ -436,6 +443,8 @@ public class GamePlaySelection : GameGridListener
 			//
 			// Select area in GameGrid
 			m_GameGrid.SelectArea(cellTopLeft, iAreaHeight, iAreaHeight, iAreaId);
+
+			m_aSelectedCells.Clear();
 		}
 		else
 		{
