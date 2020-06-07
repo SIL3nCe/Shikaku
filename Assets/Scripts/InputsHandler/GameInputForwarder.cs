@@ -1,14 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameInputForwarder : MonoBehaviour
 {
 	public CameraInputsHandler m_CameraInputsHandler;
 	public CanvasGameInputsHandler m_CanvasGameInputsHandler;
+	public GameGUIInputsHandler m_GameGUIInputsHandler;
 
 	public Canvas m_CanvasGUI;
+	public GameObject m_PanelGameGUI;
 	public GameObject m_PanelCameraInputs;
+	public RawImage m_ImageCameraGame;
 	public Canvas m_CanvasGame;
 
 	public Camera m_CameraGame;
@@ -35,6 +39,7 @@ public class GameInputForwarder : MonoBehaviour
 		m_CanvasGameInputsHandler.SetCanvasGame(m_CanvasGame);
 		m_CanvasGameInputsHandler.SetCanvasGUI(m_CanvasGUI);
 		m_CanvasGameInputsHandler.SetCameraInputsHandler(m_CameraInputsHandler);
+		//m_CanvasGameInputsHandler.SetImageCameraGame(m_ImageCameraGame);
 		m_CameraInputsHandler.SetCameraGame(m_CameraGame);
 		m_CameraInputsHandler.SetCanvasGUI(m_CanvasGUI);
 		m_CameraInputsHandler.SetGameGrid(m_GameGrid);
@@ -82,9 +87,18 @@ public class GameInputForwarder : MonoBehaviour
 					&&	vScreenPosition.y < rectTransform.rect.height * 0.5f)
 				{
 					//
-					// Camera inputs first
+					// Retrieve height of different GUI components
+					float fPanelGameGUIHeight = m_PanelGameGUI.GetComponent<RectTransform>().rect.height;
 					float fPanelCameraInputHeight = m_PanelCameraInputs.GetComponent<RectTransform>().rect.height;
-					if (vScreenPosition.y < -rectTransform.rect.height * 0.5f + fPanelCameraInputHeight)
+
+					//
+					// GameGUI first
+					if (vScreenPosition.y < -rectTransform.rect.height * 0.5f + fPanelGameGUIHeight)
+					{
+						m_currentInputHandler = m_GameGUIInputsHandler;
+					}
+					// Camera inputs 
+					else if (vScreenPosition.y < -rectTransform.rect.height * 0.5f + fPanelCameraInputHeight)
 					{
 						m_currentInputHandler = m_CameraInputsHandler;
 					}
