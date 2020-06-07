@@ -12,6 +12,7 @@ public class GameInputForwarder : MonoBehaviour
 	public Canvas m_CanvasGUI;
 	public GameObject m_PanelGameGUI;
 	public GameObject m_PanelCameraInputs;
+	public GameObject m_PanelGUI;
 	public RawImage m_ImageCameraGame;
 	public Canvas m_CanvasGame;
 
@@ -39,11 +40,12 @@ public class GameInputForwarder : MonoBehaviour
 		m_CanvasGameInputsHandler.SetCanvasGame(m_CanvasGame);
 		m_CanvasGameInputsHandler.SetCanvasGUI(m_CanvasGUI);
 		m_CanvasGameInputsHandler.SetCameraInputsHandler(m_CameraInputsHandler);
-		//m_CanvasGameInputsHandler.SetImageCameraGame(m_ImageCameraGame);
+		m_CanvasGameInputsHandler.SetImageCameraGame(m_ImageCameraGame);
 		m_CameraInputsHandler.SetCameraGame(m_CameraGame);
 		m_CameraInputsHandler.SetCanvasGUI(m_CanvasGUI);
 		m_CameraInputsHandler.SetGameGrid(m_GameGrid);
 		m_CameraInputsHandler.SetCanvasGUIPanelCameraInputs(m_PanelCameraInputs);
+		m_CameraInputsHandler.SetCanvasGUIPanelGUI(m_PanelGUI);
 	}
 
 	bool IsInputTriggered(ref Vector2 vScreenPosition)

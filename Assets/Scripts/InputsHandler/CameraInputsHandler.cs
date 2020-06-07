@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class CameraInputsHandler : InputsHandler
 {
@@ -27,6 +25,7 @@ public class CameraInputsHandler : InputsHandler
 	private Camera m_CameraGame;
 	private Canvas m_CanvasGUI;
 	private GameObject m_CanvasGUIPanelCameraInputs;
+	private GameObject m_CanvasGUIPanelGUI;
 
 	//
 	// Panning
@@ -38,7 +37,8 @@ public class CameraInputsHandler : InputsHandler
 	private Vector2 m_vPanningRectSize = new Vector2(0.0f, 0.0f);
 	private Vector2 m_vPanningBoundsTopLeft = new Vector2(0.0f, 0.0f);
 	private Vector2 m_vPanningBoundsBottomRight = new Vector2(0.0f, 0.0f);
-	private Vector2 m_vPanningOffset = new Vector2(0.0f, 0.0f);
+	private Vector2 m_vPanningOffsetTopLeft = new Vector2(0.0f, 0.0f);
+	private Vector2 m_vPanningOffsetBottomRight = new Vector2(0.0f, 0.0f);
 
 	//
 	// Zooming
@@ -109,13 +109,31 @@ public class CameraInputsHandler : InputsHandler
 
 		//
 		// Compute panning bounds - part 3
-		m_vPanningOffset.y = -m_CanvasGUIPanelCameraInputs.GetComponent<RectTransform>().rect.height;
-		m_vPanningBoundsBottomRight += m_vPanningOffset;
+		m_vPanningOffsetBottomRight.y = -m_CanvasGUIPanelCameraInputs.GetComponent<RectTransform>().rect.height;
+		m_vPanningBoundsBottomRight += m_vPanningOffsetBottomRight;
 
 		//
 		// Initial panning
-		m_vPanningPosInit.y	+= m_vPanningOffset.y * 0.5f;
-		m_vPanningPos.y		+= m_vPanningOffset.y * 0.5f;
+		m_vPanningPosInit.y	+= m_vPanningOffsetBottomRight.y * 0.5f;
+		m_vPanningPos		= m_vPanningPosInit;
+		ApplyPanningtoCamera();
+
+		UpdatePanningPossibility();
+	}
+
+	public void SetCanvasGUIPanelGUI(GameObject panelGUI)
+	{
+		m_CanvasGUIPanelGUI = panelGUI;
+
+		//
+		// Compute panning bounds - part 4
+		m_vPanningOffsetTopLeft.y = m_CanvasGUIPanelGUI.GetComponent<RectTransform>().rect.height;
+		m_vPanningBoundsTopLeft += m_vPanningOffsetTopLeft;
+
+		//
+		// Initial panning
+		m_vPanningPosInit.y += m_vPanningOffsetTopLeft.y * 0.5f;
+		m_vPanningPos = m_vPanningPosInit;
 		ApplyPanningtoCamera();
 
 		UpdatePanningPossibility();
@@ -223,12 +241,16 @@ public class CameraInputsHandler : InputsHandler
 
 			//
 			// Update camera and panning rect size
-			m_vPanningBoundsBottomRight.y -= m_vPanningOffset.y;
+			m_vPanningBoundsBottomRight.y -= m_vPanningOffsetBottomRight.y;
+			m_vPanningBoundsBottomRight.y -= m_vPanningOffsetTopLeft.y;
 			float fNewOrthographicSize = m_CameraGame.orthographicSize + fDeltaZoomRatio;
-			float fPanningOffsetRatioY = m_vPanningOffset.y * fNewOrthographicSize / m_CameraGame.orthographicSize; // proportions because canvas initial size = camera initial orthographic size
+			float fPanningOffsetRatioYBottomRight = m_vPanningOffsetBottomRight.y * fNewOrthographicSize / m_CameraGame.orthographicSize; // proportions because canvas initial size = camera initial orthographic size
+			float fPanningOffsetRatioYTopLeft = m_vPanningOffsetTopLeft.y * fNewOrthographicSize / m_CameraGame.orthographicSize; // proportions because canvas initial size = camera initial orthographic size
 			SetPanningRectSize(new Vector2(fNewOrthographicSize, fNewOrthographicSize));
-			m_vPanningOffset.y = fPanningOffsetRatioY;
-			m_vPanningBoundsBottomRight.y += m_vPanningOffset.y;
+			m_vPanningOffsetBottomRight.y = fPanningOffsetRatioYBottomRight;
+			m_vPanningOffsetTopLeft.y = fPanningOffsetRatioYTopLeft;
+			m_vPanningBoundsBottomRight.y += m_vPanningOffsetBottomRight.y;
+			m_vPanningBoundsTopLeft.y += m_vPanningOffsetTopLeft.y;
 
 			//
 			// Clamp panning position to bottom right if it is already in max panning position

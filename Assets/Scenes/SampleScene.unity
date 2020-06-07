@@ -192,24 +192,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1051316082 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2864494599306896857, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
-    type: 3}
-  m_PrefabInstance: {fileID: 322497936463060476}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85d46380fc974784db8cdf780f69f9ea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!223 &1051316086 stripped
-Canvas:
-  m_CorrespondingSourceObject: {fileID: 322497937486868801, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
-    type: 3}
-  m_PrefabInstance: {fileID: 322497936463060476}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1084508778 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2741863288859519287, guid: d127db12c22bb194e955c0a49fa5900b,
@@ -252,12 +234,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1 &2029912069 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 322497937248015122, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
-    type: 3}
-  m_PrefabInstance: {fileID: 322497936463060476}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2119115070 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7113791229873876051, guid: f9f0bf94ea425ad41a3315dcca97c232,
@@ -317,6 +293,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: CameraGUI
       objectReference: {fileID: 0}
+    - target: {fileID: 322497936671797020, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
+        type: 3}
+      propertyPath: m_UVRect.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 322497936671797020, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
+        type: 3}
+      propertyPath: m_UVRect.height
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 322497936671797027, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 322497936671797027, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2864494599306896857, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
+        type: 3}
+      propertyPath: m_bDebugDrawPanning
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4778592552407195835, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
         type: 3}
       propertyPath: m_CanvasGameInputsHandler
@@ -342,21 +343,6 @@ PrefabInstance:
       propertyPath: m_GameGrid
       value: 
       objectReference: {fileID: 1283627455}
-    - target: {fileID: 4778592552407195835, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
-        type: 3}
-      propertyPath: m_CameraInputsHandler
-      value: 
-      objectReference: {fileID: 1051316082}
-    - target: {fileID: 4778592552407195835, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
-        type: 3}
-      propertyPath: m_CanvasGUI
-      value: 
-      objectReference: {fileID: 1051316086}
-    - target: {fileID: 4778592552407195835, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
-        type: 3}
-      propertyPath: m_PanelCameraInputs
-      value: 
-      objectReference: {fileID: 2029912069}
     - target: {fileID: 4778592552407195835, guid: b84de41ddd2f7d649a2ba5465e5fa99d,
         type: 3}
       propertyPath: m_GamePlaySelection
